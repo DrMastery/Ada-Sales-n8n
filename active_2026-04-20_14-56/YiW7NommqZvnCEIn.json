@@ -1,0 +1,414 @@
+{
+  "updatedAt": "2025-09-25T17:34:18.149Z",
+  "createdAt": "2025-09-19T07:54:03.742Z",
+  "id": "YiW7NommqZvnCEIn",
+  "name": "Lead: set manager",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "telegram",
+              "type": "object"
+            },
+            {
+              "name": "manager",
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "f21b840f-369e-411e-ae26-6b83862a35b8",
+      "name": "When Executed by Master"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT options FROM mb592658_adadb.rise_custom_fields WHERE id = 19;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        256,
+        0
+      ],
+      "id": "90d62ded-a8c7-4136-89a7-02671434c299",
+      "name": "Get manager options",
+      "credentials": {
+        "mySql": {
+          "id": "hWvHOF51fBsx3NA3",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the list of available managers and user input\nconst optionsRaw = $('Get manager options').first().json.options; // e.g., \"Anna,Yana,Amina,Alisa\"\nconst inputRaw = $('When Executed by Master').first().json.telegram.message.text; // e.g., \"Yana, Anna\"\n\n// Split both strings into arrays and trim spaces\nconst options = optionsRaw.split(',').map(o => o.trim());\nconst inputNames = inputRaw.split(',').map(n => n.trim());\n\n// Check which input names are invalid (not in options)\nconst invalidNames = inputNames.filter(name => !options.includes(name));\n\nif (invalidNames.length === 0) {\n    // All names are valid\n    return [\n        {\n            json: {\n                valid: true,\n                managers: inputNames.join(',') // comma-separated string\n            }\n        }\n    ];\n} else {\n\n    return [\n        {\n            json: {\n                valid: false,\n                error: `Не найдено \"${invalidNames.join(', ')}\"`\n            }\n        }\n    ];\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ],
+      "id": "aeaffbc0-0df8-430d-b136-bcaeedcc07fc",
+      "name": "Find managers values"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f92249b5-4f95-42a9-bced-79717405b719",
+              "leftValue": "={{ $json.valid }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        0
+      ],
+      "id": "14607037-30e4-4f8d-b171-d02f4339b368",
+      "name": "If valid"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by Master').item.json.manager.id }}",
+        "text": "=Назначено менеджеров: {{ $('Find managers values').item.json.managers }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1504,
+        -64
+      ],
+      "id": "7abab418-b13c-4d93-a56c-79815ff6aff7",
+      "name": "Send text: to set managers",
+      "webhookId": "15b4ba02-381e-4bc0-9454-c3f3e26fa15b",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by Master').item.json.manager.id }}",
+        "text": "={{ $json.error }}\n\nВведите заново",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1008,
+        128
+      ],
+      "id": "9f65a45f-8fac-41e1-a44f-0d369b60753c",
+      "name": "Send text: error",
+      "webhookId": "15b4ba02-381e-4bc0-9454-c3f3e26fa15b",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const state_data = $('When Executed by Master').first().json.manager.state_data\nconst json = JSON.parse(state_data);\nreturn {\"json\": {\"stateData\": json}}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1008,
+        -64
+      ],
+      "id": "d3922233-440d-40c5-84e0-9f205c92f543",
+      "name": "Get stateData"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://ada-sale.online/index.php/api/leads/{{ $json.stateData.update_lead.lead_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authtoken",
+              "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJ1c2VyIjoic2VjdXNweWNvZGVAZ21haWwuY29tIiwibmFtZSI6IlZsYWRpbWlyIiwiQVBJX1RJTUUiOjE3NTUxODI4NTB9.0ulouSbP4bfsxFL8RsSYkg_BxdAIHCT744VE738_eakUWBvjD-9_xme5H8wG0574CA6NN3HrdAYR-CiQUWQGxg"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "custom_field_10",
+              "value": "={{ $('Find managers values').item.json.managers }}"
+            },
+            {
+              "name": "tg_user_id",
+              "value": "={{ $json.stateData.update_lead.tg_user.user_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1264,
+        -64
+      ],
+      "id": "b2992e51-620c-4ee8-a327-13a2aef15081",
+      "name": "CRM: update lead"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "tg_accounts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $json.result.chat.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "state",
+              "fieldValue": "={{ null }}"
+            },
+            {
+              "fieldId": "state_data",
+              "fieldValue": "={{ null }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1728,
+        -64
+      ],
+      "id": "54038bfb-4c4d-4518-b239-7cda34681658",
+      "name": "Update state: reset",
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Master": {
+      "main": [
+        [
+          {
+            "node": "Get manager options",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get manager options": {
+      "main": [
+        [
+          {
+            "node": "Find managers values",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find managers values": {
+      "main": [
+        [
+          {
+            "node": "If valid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If valid": {
+      "main": [
+        [
+          {
+            "node": "Get stateData",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send text: error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get stateData": {
+      "main": [
+        [
+          {
+            "node": "CRM: update lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM: update lead": {
+      "main": [
+        [
+          {
+            "node": "Send text: to set managers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send text: to set managers": {
+      "main": [
+        [
+          {
+            "node": "Update state: reset",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "When Executed by Master": [
+      {
+        "json": {
+          "telegram": {
+            "update_id": 502823682,
+            "message": {
+              "message_id": 3665,
+              "from": {
+                "id": 8203479406,
+                "is_bot": false,
+                "first_name": "Амина",
+                "username": "amina_red",
+                "language_code": "en",
+                "is_premium": true
+              },
+              "chat": {
+                "id": 8203479406,
+                "first_name": "Амина",
+                "username": "amina_red",
+                "type": "private"
+              },
+              "date": 1758821223,
+              "text": "Алиса"
+            }
+          },
+          "manager": {
+            "id": 8203479406,
+            "created_at": "2025-08-29T17:00:31.033459+00:00",
+            "updated_at": "2025-08-29T17:00:31.033459",
+            "tg_username": "amina_red",
+            "first_name": "Амина",
+            "last_name": null,
+            "role": "manager",
+            "status": "active",
+            "api_id": 26502193,
+            "api_hash": "841f2564dd4b3f62b440372b906374d4",
+            "string_session": "1ApWapzMBu8EGjJ4C-B_glbIOlemNqzMShYcmxVbJC9htojZU9wqSr_bTAZGC06ToS0bjl1OZMWjI8lnlzdpNnjQVj-7K0qKw3SCukcnUgcuJvOAEyMLKN1LzDnasQElngOOFNzBPK8DYJrWIayK8JlCrC2-b-So1bfR3n6SQcK-lOC38DyBqXmR8a1O0hxNQbN0sHa7rlGvbRGSZUH4TzqQ6-K-fUJChNKQD0DqE_dNBf6pr4WXaknHn9_wSvjVpEGzDnwaYgc7u8nmU2MQYPLlDIl72FVxcPyhLUUALoksCpZzgzQRO4RLMmOlaHN1saOyXBf_a0U6W4quBhJ3Bx4mPoOpF2NU=",
+            "phone": "+380630282951",
+            "proxy_ip": "5.22.204.236",
+            "proxy_port": 59100,
+            "proxy_login": "dabstep4enko",
+            "proxy_password": "FjGhduJaEN",
+            "state": "update_lead__choose_managers",
+            "last_tg_api_call_at": null,
+            "state_data": "{\n  \"update_lead\": {\n    \"lead_id\": 174,\n    \"tg_user\": {\"user_id\":338216406,\"created_at\":\"2025-09-25T17:02:15.887857+00:00\",\"updated_at\":\"2025-09-25T17:02:15.887857+00:00\",\"first_name\":\"Саша\",\"last_name\":\"Громов\",\"username\":\"saha9406\",\"folder\":\"New\",\"chat_history\":null,\"added_by\":8203479406,\"full_name\":\"Саша Громов\",\"source\":null,\"comments\":null}\n  }\n}"
+          }
+        }
+      }
+    ]
+  },
+  "versionId": "2daf369b-3b38-4b2b-9274-294d0c330ad8",
+  "activeVersionId": "2daf369b-3b38-4b2b-9274-294d0c330ad8",
+  "versionCounter": 3,
+  "triggerCount": 0,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2025-09-19T07:54:03.742Z",
+      "createdAt": "2025-09-19T07:54:03.742Z",
+      "role": "workflow:owner",
+      "workflowId": "YiW7NommqZvnCEIn",
+      "projectId": "otThis0Dzllfqt7v",
+      "project": {
+        "updatedAt": "2025-08-20T18:30:26.018Z",
+        "createdAt": "2025-08-20T18:23:04.813Z",
+        "id": "otThis0Dzllfqt7v",
+        "name": "Ada Sales <dragmastery@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "b0f4cf25-2d4a-4614-b225-fe05addaa1fc"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

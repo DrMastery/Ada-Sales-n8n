@@ -1,0 +1,678 @@
+{
+  "updatedAt": "2025-09-19T14:54:47.642Z",
+  "createdAt": "2025-09-02T19:49:06.068Z",
+  "id": "JhmThmZJVu4Ak78F",
+  "name": "Lead: change status",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "manager",
+              "type": "object"
+            },
+            {
+              "name": "telegram",
+              "type": "object"
+            },
+            {
+              "name": "to_set_status"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -352,
+        96
+      ],
+      "id": "b6634c32-1446-4015-92ba-a464dd84f61b",
+      "name": "When Executed by Master"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "6PGhJWkP2yYnbbKV",
+          "mode": "list",
+          "cachedResultName": "Find lead"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "manager": "={{ $('When Executed by Master').item.json.manager }}",
+            "telegram": "={{ $('When Executed by Master').item.json.telegram }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "manager",
+              "displayName": "manager",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "telegram",
+              "displayName": "telegram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -144,
+        96
+      ],
+      "id": "944cb3f5-8fee-486b-b120-5abd7b226c7b",
+      "name": "Find lead"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d207d4ab-c56f-48d5-a3a7-d6c9ff68c94f",
+              "leftValue": "={{ $('Find lead').item.json.is_found }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        64,
+        96
+      ],
+      "id": "66fd8c6b-56b7-4523-9d5a-415bc1fcc399",
+      "name": "If found"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "tg_accounts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('When Executed by Master').first().json.manager.id}}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "state",
+              "fieldValue": "={{ null }}"
+            },
+            {
+              "fieldId": "state_data",
+              "fieldValue": "={{ null }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        3104,
+        -112
+      ],
+      "id": "73f28e32-e8c5-427b-8db7-59ff0db5c9a9",
+      "name": "Update state: reset",
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by Master').item.json.manager.id }}",
+        "text": "=❌ Ошибка:\n`{{ $('TR accounts api: move chat to another folder').item.json.error.message }}`",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1408,
+        128
+      ],
+      "id": "d80648ef-ff2b-4584-a872-ba00e479cb22",
+      "name": "Send text: error",
+      "webhookId": "15b4ba02-381e-4bc0-9454-c3f3e26fa15b",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM mb592658_adadb.rise_clients WHERE tg_user_id = {{ $('Find lead').item.json.lead_data.user_id }} and deleted = 0;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        2096,
+        -384
+      ],
+      "id": "9b1471bf-60d2-41a3-898c-accade3a4a72",
+      "name": "Get lead from CRM",
+      "credentials": {
+        "mySql": {
+          "id": "hWvHOF51fBsx3NA3",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "tg_leads",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "user_id",
+              "condition": "eq",
+              "keyValue": "={{ $('If found').item.json.lead_data.user_id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "folder",
+              "fieldValue": "={{ $('Get status: folder, crm id, db name').item.json.db_status_name }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        784,
+        -112
+      ],
+      "id": "a177c202-8201-43e6-9d0c-d68e072345d1",
+      "name": "Set new status",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const statuses = {\n  \"New\": {\n    \"tg_folder\": \"Новые\",\n    \"crm_status_id\": 2\n  }, \n  \"Segmentation\": {\n    \"tg_folder\": \"Сегментация\",\n    \"crm_status_id\": 3\n  },\n  \"Discard\": {\n    \"tg_folder\": \"Слив\",\n    \"crm_status_id\": 1\n  },\n  \"Ignore\": {\n    \"tg_folder\": \"Игнор\",\n    \"crm_status_id\": null\n  },\n};\n\nconst db_status_name = $('When Executed by Master').first().json.to_set_status;\n\nreturn [\n  {\n    json: {\n      db_status_name,\n      tg_folder: statuses[db_status_name].tg_folder,\n      crm_status_id: statuses[db_status_name].crm_status_id,\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        384,
+        -16
+      ],
+      "id": "a43c0e42-e7ad-41e1-82a4-df1838428cc8",
+      "name": "Get status: folder, crm id, db name"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://148.230.104.29:8000/move_chat_to_folder",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "account_id",
+              "value": "={{ $('When Executed by Master').item.json.manager.id }}"
+            },
+            {
+              "name": "user_id",
+              "value": "={{ $('Find lead').item.json.lead_data.user_id }}"
+            },
+            {
+              "name": "folder",
+              "value": "={{ $('Get status: folder, crm id, db name').item.json.tg_folder }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1056,
+        -112
+      ],
+      "id": "d40a83cd-1061-4b34-bade-9568bbff6432",
+      "name": "TR accounts api: move chat to another folder",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "m7RprwkaG3kF5L6E",
+          "name": "Auth Token for tg_account_api script"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('When Executed by Master').item.json.to_set_status }}",
+                    "rightValue": "Discard",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "3eb528fd-5f3d-4516-81ce-545809215869"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Discard"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a33723f3-7180-4ddb-8570-f029c12d0ec1",
+                    "leftValue": "={{ $('When Executed by Master').item.json.to_set_status }}",
+                    "rightValue": "Ignore",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "=Ignore"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1744,
+        -128
+      ],
+      "id": "595165ee-7490-4d27-bc59-66b28eaf3402",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by Master').first().json.manager.id }}",
+        "text": "=CRM. Cтатус лида `{{ $('Find lead').item.json.lead_data.full_name }}` (`{{ $('Find lead').item.json.lead_data.user_id }}`) изменён в \"`{{ $('Get status: folder, crm id, db name').item.json.tg_folder }}`\"",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2752,
+        -384
+      ],
+      "id": "cfc78134-bd30-4f0f-9545-bea72512c5a7",
+      "name": "Send text: change status in CRM",
+      "webhookId": "aae732aa-cb4c-4e48-83a7-5f99a8d0ed68",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by Master').first().json.manager.id }}",
+        "text": "=Лид перемещён в папку \"`{{ $('Get status: folder, crm id, db name').item.json.tg_folder }}`\":\n- name: `{{ $('Find lead').item.json.lead_data.full_name }}`\n- id: `{{ $('Find lead').item.json.lead_data.user_id }}`\n- new status: `{{ $('Get status: folder, crm id, db name').item.json.tg_folder }}`",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1408,
+        -128
+      ],
+      "id": "10b7ab59-6242-4820-9a11-3eeb5235f144",
+      "name": "Send text: move lead to new folder",
+      "webhookId": "aae732aa-cb4c-4e48-83a7-5f99a8d0ed68",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://ada-sale.online/index.php/api/leads/{{ $('Get lead from CRM').item.json.id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authtoken",
+              "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJ1c2VyIjoic2VjdXNweWNvZGVAZ21haWwuY29tIiwibmFtZSI6IlZsYWRpbWlyIiwiQVBJX1RJTUUiOjE3NTUxODI4NTB9.0ulouSbP4bfsxFL8RsSYkg_BxdAIHCT744VE738_eakUWBvjD-9_xme5H8wG0574CA6NN3HrdAYR-CiQUWQGxg"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"lead_status_id\": 1,\n    \"lead_source_id\": {{ $('Get lead from CRM').item.json.lead_source_id }},\n    \"tg_user_id\": {{ $('Find lead').item.json.lead_data.user_id }}\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2368,
+        -384
+      ],
+      "id": "dedb07c3-0d52-4247-a57c-f94e95357fe1",
+      "name": "CRM: update lead"
+    }
+  ],
+  "connections": {
+    "When Executed by Master": {
+      "main": [
+        [
+          {
+            "node": "Find lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find lead": {
+      "main": [
+        [
+          {
+            "node": "If found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If found": {
+      "main": [
+        [
+          {
+            "node": "Get status: folder, crm id, db name",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Get lead from CRM": {
+      "main": [
+        [
+          {
+            "node": "CRM: update lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set new status": {
+      "main": [
+        [
+          {
+            "node": "TR accounts api: move chat to another folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TR accounts api: move chat to another folder": {
+      "main": [
+        [
+          {
+            "node": "Send text: move lead to new folder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send text: error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get status: folder, crm id, db name": {
+      "main": [
+        [
+          {
+            "node": "Set new status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Get lead from CRM",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update state: reset",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send text: change status in CRM": {
+      "main": [
+        [
+          {
+            "node": "Update state: reset",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send text: move lead to new folder": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM: update lead": {
+      "main": [
+        [
+          {
+            "node": "Send text: change status in CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "When Executed by Master": [
+      {
+        "json": {
+          "manager": {
+            "id": 8203479406,
+            "created_at": "2025-08-29T17:00:31.033459+00:00",
+            "updated_at": "2025-08-29T17:00:31.033459",
+            "tg_username": "amina_red",
+            "first_name": "Амина",
+            "last_name": null,
+            "role": "manager",
+            "status": "active",
+            "api_id": 26502193,
+            "api_hash": "841f2564dd4b3f62b440372b906374d4",
+            "string_session": "1ApWapzMBu8EGjJ4C-B_glbIOlemNqzMShYcmxVbJC9htojZU9wqSr_bTAZGC06ToS0bjl1OZMWjI8lnlzdpNnjQVj-7K0qKw3SCukcnUgcuJvOAEyMLKN1LzDnasQElngOOFNzBPK8DYJrWIayK8JlCrC2-b-So1bfR3n6SQcK-lOC38DyBqXmR8a1O0hxNQbN0sHa7rlGvbRGSZUH4TzqQ6-K-fUJChNKQD0DqE_dNBf6pr4WXaknHn9_wSvjVpEGzDnwaYgc7u8nmU2MQYPLlDIl72FVxcPyhLUUALoksCpZzgzQRO4RLMmOlaHN1saOyXBf_a0U6W4quBhJ3Bx4mPoOpF2NU=",
+            "phone": "+380630282951",
+            "proxy_ip": "5.22.204.236",
+            "proxy_port": 59100,
+            "proxy_login": "dabstep4enko",
+            "proxy_password": "FjGhduJaEN",
+            "state": "update_lead__move_to_disscard__input_user",
+            "last_tg_api_call_at": null,
+            "state_data": null
+          },
+          "telegram": {
+            "update_id": 502823329,
+            "message": {
+              "message_id": 2906,
+              "from": {
+                "id": 8203479406,
+                "is_bot": false,
+                "first_name": "Амина",
+                "username": "amina_red",
+                "language_code": "en",
+                "is_premium": true
+              },
+              "chat": {
+                "id": 8203479406,
+                "first_name": "Амина",
+                "username": "amina_red",
+                "type": "private"
+              },
+              "date": 1758281606,
+              "text": "469673313",
+              "entities": [
+                {
+                  "offset": 0,
+                  "length": 9,
+                  "type": "phone_number"
+                }
+              ]
+            }
+          },
+          "to_set_status": "Discard"
+        }
+      }
+    ]
+  },
+  "versionId": "47958daf-a768-4215-a409-94056cbcaca2",
+  "activeVersionId": "47958daf-a768-4215-a409-94056cbcaca2",
+  "versionCounter": 3,
+  "triggerCount": 0,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2025-09-02T19:49:06.068Z",
+      "createdAt": "2025-09-02T19:49:06.068Z",
+      "role": "workflow:owner",
+      "workflowId": "JhmThmZJVu4Ak78F",
+      "projectId": "otThis0Dzllfqt7v",
+      "project": {
+        "updatedAt": "2025-08-20T18:30:26.018Z",
+        "createdAt": "2025-08-20T18:23:04.813Z",
+        "id": "otThis0Dzllfqt7v",
+        "name": "Ada Sales <dragmastery@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "b0f4cf25-2d4a-4614-b225-fe05addaa1fc"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

@@ -1,0 +1,168 @@
+{
+  "updatedAt": "2025-09-02T16:01:21.133Z",
+  "createdAt": "2025-08-29T14:34:58.323Z",
+  "id": "tZekKdw7eD8UGiV4",
+  "name": "Lead: enter name or username",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "68f4dcf8-bedb-414c-a333-f3af41903026",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "tg_accounts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Send text: input name or username').item.json.result.chat.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "state",
+              "fieldValue": "create_lead__name_input"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        528,
+        0
+      ],
+      "id": "78afb69a-dc2a-4101-a1bf-208026ffe5c5",
+      "name": "update state: create_lead__name_input",
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by Another Workflow').item.json.id}}",
+        "text": "Введите `name` или `username` или `user_id` лида: ",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        272,
+        0
+      ],
+      "id": "e4abe81e-3c72-41d5-b1c9-7a8109c76ca9",
+      "name": "Send text: input name or username",
+      "webhookId": "440b5dc4-d8b8-485a-8731-14decd4a33c1",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Send text: input name or username",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send text: input name or username": {
+      "main": [
+        [
+          {
+            "node": "update state: create_lead__name_input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "id": 8203479406,
+          "created_at": "2025-08-29T17:00:31.033459+00:00",
+          "updated_at": "2025-08-29T17:00:31.033459",
+          "tg_username": "amina_red",
+          "first_name": "Амина",
+          "last_name": null,
+          "role": "manager",
+          "status": "active",
+          "api_id": 26502193,
+          "api_hash": "841f2564dd4b3f62b440372b906374d4",
+          "string_session": "1ApWapzMBu8EGjJ4C-B_glbIOlemNqzMShYcmxVbJC9htojZU9wqSr_bTAZGC06ToS0bjl1OZMWjI8lnlzdpNnjQVj-7K0qKw3SCukcnUgcuJvOAEyMLKN1LzDnasQElngOOFNzBPK8DYJrWIayK8JlCrC2-b-So1bfR3n6SQcK-lOC38DyBqXmR8a1O0hxNQbN0sHa7rlGvbRGSZUH4TzqQ6-K-fUJChNKQD0DqE_dNBf6pr4WXaknHn9_wSvjVpEGzDnwaYgc7u8nmU2MQYPLlDIl72FVxcPyhLUUALoksCpZzgzQRO4RLMmOlaHN1saOyXBf_a0U6W4quBhJ3Bx4mPoOpF2NU=",
+          "phone": "+380630282951",
+          "proxy_ip": "5.22.204.236",
+          "proxy_port": 59100,
+          "proxy_login": "dabstep4enko",
+          "proxy_password": "FjGhduJaEN"
+        }
+      }
+    ]
+  },
+  "versionId": "292b6bef-e2e9-44c4-89a1-6e6372b9fb7c",
+  "activeVersionId": "292b6bef-e2e9-44c4-89a1-6e6372b9fb7c",
+  "versionCounter": 3,
+  "triggerCount": 0,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2025-08-29T14:34:58.323Z",
+      "createdAt": "2025-08-29T14:34:58.323Z",
+      "role": "workflow:owner",
+      "workflowId": "tZekKdw7eD8UGiV4",
+      "projectId": "otThis0Dzllfqt7v",
+      "project": {
+        "updatedAt": "2025-08-20T18:30:26.018Z",
+        "createdAt": "2025-08-20T18:23:04.813Z",
+        "id": "otThis0Dzllfqt7v",
+        "name": "Ada Sales <dragmastery@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "b0f4cf25-2d4a-4614-b225-fe05addaa1fc"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

@@ -1,0 +1,418 @@
+{
+  "updatedAt": "2025-09-19T10:03:50.473Z",
+  "createdAt": "2025-09-02T15:28:49.611Z",
+  "id": "YeSVeMkyUo50sysT",
+  "name": "Lead: show card -> find lead",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "manager",
+              "type": "object"
+            },
+            {
+              "name": "telegram",
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        32
+      ],
+      "id": "331bacb7-0294-4784-bfab-c80a8bc27825",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "6PGhJWkP2yYnbbKV",
+          "mode": "list",
+          "cachedResultName": "Find lead"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "manager": "={{ $json.manager }}",
+            "telegram": "={{ $json.telegram }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "manager",
+              "displayName": "manager",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "telegram",
+              "displayName": "telegram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        448,
+        32
+      ],
+      "id": "becdbc69-a626-4e3e-a68e-00f57c0553f9",
+      "name": "Find lead"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d207d4ab-c56f-48d5-a3a7-d6c9ff68c94f",
+              "leftValue": "={{ $('Find lead').item.json.is_found }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        688,
+        32
+      ],
+      "id": "5aad1468-ad85-4f3a-b4e3-59621417353b",
+      "name": "If found"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "tg_accounts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('When Executed by Another Workflow').first().json.manager.id}}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "state",
+              "fieldValue": "={{ null }}"
+            },
+            {
+              "fieldId": "state_data",
+              "fieldValue": "={{ null }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1808,
+        16
+      ],
+      "id": "36a1e174-9c51-44c5-b239-9cb281547940",
+      "name": "Update state: reset",
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by Another Workflow').first().json.manager.id }}",
+        "text": "=Комментарии:\n\n{{ $json.comments }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1600,
+        16
+      ],
+      "id": "66e95cfb-e3d7-486e-b226-bfcdf9e24749",
+      "name": "Send a text message",
+      "webhookId": "aae732aa-cb4c-4e48-83a7-5f99a8d0ed68",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const comments = $input.all() // or your data source\nlet output = \"\";\n\nif (comments.length === 0 || !comments[0].json.id) {\n  output = \"\";\n} else {\n  comments\n    .filter(item => item.json.deleted === \"0\") // only include non-deleted items\n    .forEach(item => {\n      const c = item.json;\n      \n      // Format the date in local format\n      output += `Date: ${new Date(c.created_at).toLocaleString()}\\n`;\n      \n      // Just use the title as-is\n      const titleLine = c.title || \"-\";\n      output += `Title: ${titleLine}\\n`;\n      \n      // Use the description field as the text\n      output += `Text: \\n${c.description || \"-\"}\\n`;\n      output += \"--------------------------\\n\";\n    });\n}\n\nreturn { json: { comments: output } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1376,
+        16
+      ],
+      "id": "290a4c5d-b9b1-41d5-9ec4-a525febc0599",
+      "name": "Format comments",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "url": "=https://ada-sale.online/index.php/api/lead-notes?client_id={{ $('Get lead id').item.json.id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authtoken",
+              "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJ1c2VyIjoic2VjdXNweWNvZGVAZ21haWwuY29tIiwibmFtZSI6IlZsYWRpbWlyIiwiQVBJX1RJTUUiOjE3NTUxODI4NTB9.0ulouSbP4bfsxFL8RsSYkg_BxdAIHCT744VE738_eakUWBvjD-9_xme5H8wG0574CA6NN3HrdAYR-CiQUWQGxg"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1136,
+        16
+      ],
+      "id": "30c7b7b9-1c84-41ea-af40-f3cadd4db4d4",
+      "name": "CRM: get comments"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id FROM mb592658_adadb.rise_clients WHERE tg_user_id = {{ $json.lead_data.user_id }} and deleted = 0;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        928,
+        16
+      ],
+      "id": "ea255d85-6212-4cb8-8165-44d29a459090",
+      "name": "Get lead id",
+      "credentials": {
+        "mySql": {
+          "id": "hWvHOF51fBsx3NA3",
+          "name": "MySQL account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Find lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find lead": {
+      "main": [
+        [
+          {
+            "node": "If found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If found": {
+      "main": [
+        [
+          {
+            "node": "Get lead id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update state: reset": {
+      "main": [
+        []
+      ]
+    },
+    "Format comments": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Update state: reset",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM: get comments": {
+      "main": [
+        [
+          {
+            "node": "Format comments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get lead id": {
+      "main": [
+        [
+          {
+            "node": "CRM: get comments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "manager": {
+            "id": 8203479406,
+            "created_at": "2025-08-29T17:00:31.033459+00:00",
+            "updated_at": "2025-08-29T17:00:31.033459",
+            "tg_username": "amina_red",
+            "first_name": "Амина",
+            "last_name": null,
+            "role": "manager",
+            "status": "active",
+            "api_id": 26502193,
+            "api_hash": "841f2564dd4b3f62b440372b906374d4",
+            "string_session": "1ApWapzMBu8EGjJ4C-B_glbIOlemNqzMShYcmxVbJC9htojZU9wqSr_bTAZGC06ToS0bjl1OZMWjI8lnlzdpNnjQVj-7K0qKw3SCukcnUgcuJvOAEyMLKN1LzDnasQElngOOFNzBPK8DYJrWIayK8JlCrC2-b-So1bfR3n6SQcK-lOC38DyBqXmR8a1O0hxNQbN0sHa7rlGvbRGSZUH4TzqQ6-K-fUJChNKQD0DqE_dNBf6pr4WXaknHn9_wSvjVpEGzDnwaYgc7u8nmU2MQYPLlDIl72FVxcPyhLUUALoksCpZzgzQRO4RLMmOlaHN1saOyXBf_a0U6W4quBhJ3Bx4mPoOpF2NU=",
+            "phone": "+380630282951",
+            "proxy_ip": "5.22.204.236",
+            "proxy_port": 59100,
+            "proxy_login": "dabstep4enko",
+            "proxy_password": "FjGhduJaEN",
+            "state": "show_lead_card__ask_lead_input",
+            "last_tg_api_call_at": null,
+            "state_data": ""
+          },
+          "telegram": {
+            "update_id": 502823280,
+            "message": {
+              "message_id": 2803,
+              "from": {
+                "id": 8203479406,
+                "is_bot": false,
+                "first_name": "Амина",
+                "username": "amina_red",
+                "language_code": "en",
+                "is_premium": true
+              },
+              "chat": {
+                "id": 8203479406,
+                "first_name": "Амина",
+                "username": "amina_red",
+                "type": "private"
+              },
+              "date": 1758275341,
+              "text": "469673313",
+              "entities": [
+                {
+                  "offset": 0,
+                  "length": 9,
+                  "type": "phone_number"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  "versionId": "5bf3e23a-5fac-410b-917c-c90ebfd42c09",
+  "activeVersionId": "5bf3e23a-5fac-410b-917c-c90ebfd42c09",
+  "versionCounter": 3,
+  "triggerCount": 0,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2025-09-02T15:28:49.611Z",
+      "createdAt": "2025-09-02T15:28:49.611Z",
+      "role": "workflow:owner",
+      "workflowId": "YeSVeMkyUo50sysT",
+      "projectId": "otThis0Dzllfqt7v",
+      "project": {
+        "updatedAt": "2025-08-20T18:30:26.018Z",
+        "createdAt": "2025-08-20T18:23:04.813Z",
+        "id": "otThis0Dzllfqt7v",
+        "name": "Ada Sales <dragmastery@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "b0f4cf25-2d4a-4614-b225-fe05addaa1fc"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

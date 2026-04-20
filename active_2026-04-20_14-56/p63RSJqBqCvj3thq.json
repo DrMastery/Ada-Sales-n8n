@@ -1,0 +1,454 @@
+{
+  "updatedAt": "2025-10-10T09:23:50.520Z",
+  "createdAt": "2025-10-10T09:02:51.929Z",
+  "id": "p63RSJqBqCvj3thq",
+  "name": "Transcribe audio: process + finish",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "manager",
+              "type": "object"
+            },
+            {
+              "name": "telegram",
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -2272,
+        144
+      ],
+      "id": "32717e86-b5c2-4a83-9e96-a03488106ce2",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "pCsLI44Gc1gJT7Jb",
+          "mode": "list",
+          "cachedResultName": "Convert tg audio file to text"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "telegram": "={{ $('When Executed by Another Workflow').item.json.telegram }}"
+          },
+          "matchingColumns": [
+            "telegram"
+          ],
+          "schema": [
+            {
+              "id": "telegram",
+              "displayName": "telegram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -1600,
+        144
+      ],
+      "id": "dfa42d91-826d-41e0-b2ce-771d47cf2a4b",
+      "name": "Execute \"Convert tg audio file to text\"",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('When Executed by Another Workflow').item.json.telegram.message.hasField(\"audio\") }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "3f911b95-6270-4c2e-87d1-bd3a10b5ef54"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "audio"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "4bd0c7bb-3da7-4427-9afe-ebf8b097b45e",
+                    "leftValue": "={{ $('When Executed by Another Workflow').item.json.telegram.message.hasField(\"voice\") }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "voice"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -2048,
+        144
+      ],
+      "id": "2269f377-10c3-48e1-885c-d7be57572d76",
+      "name": "Message type"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by Another Workflow').item.json.manager.id }}",
+        "text": "⏳ Идёт транскрибация аудио, подождите некоторое время...",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1824,
+        144
+      ],
+      "id": "08aad18d-fb51-401b-a581-c7bb27c781aa",
+      "name": "MSG: transcribing in progress",
+      "webhookId": "aae732aa-cb4c-4e48-83a7-5f99a8d0ed68",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by Another Workflow').item.json.manager.id }}",
+        "text": "Ошибка: транскрибация аудио в текст не выполнена.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1376,
+        240
+      ],
+      "id": "6b32fc51-0b3e-49f1-9660-3a04a49d6f7c",
+      "name": "MSG: error in transcribe audio",
+      "webhookId": "aae732aa-cb4c-4e48-83a7-5f99a8d0ed68",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "tg_accounts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('When Executed by Another Workflow').item.json.manager.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "state",
+              "fieldValue": "={{ null }}"
+            },
+            {
+              "fieldId": "state_data",
+              "fieldValue": "={{ null }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -1200,
+        48
+      ],
+      "id": "912abd1f-6818-4712-82e2-35a95707b1fd",
+      "name": "Reset state",
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "fjU3nbH1jlI2QsqD",
+          "mode": "list",
+          "cachedResultName": "Chunk tg messages"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "tg_user": "={{ $('When Executed by Another Workflow').item.json.manager }}",
+            "content": "={{ $json.markdown_output }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "tg_user",
+              "displayName": "tg_user",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            },
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -1392,
+        48
+      ],
+      "id": "96215c0b-4510-40e3-a46e-63dab7ac9605",
+      "name": "Execute \"Chunk into messages\""
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Message type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute \"Convert tg audio file to text\"": {
+      "main": [
+        [
+          {
+            "node": "Execute \"Chunk into messages\"",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "MSG: error in transcribe audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message type": {
+      "main": [
+        [
+          {
+            "node": "MSG: transcribing in progress",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "MSG: transcribing in progress",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MSG: transcribing in progress": {
+      "main": [
+        [
+          {
+            "node": "Execute \"Convert tg audio file to text\"",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reset state": {
+      "main": [
+        []
+      ]
+    },
+    "Execute \"Chunk into messages\"": {
+      "main": [
+        [
+          {
+            "node": "Reset state",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "manager": {
+            "id": 8203479406,
+            "created_at": "2025-08-29T17:00:31.033459+00:00",
+            "updated_at": "2025-08-29T17:00:31.033459",
+            "tg_username": "amina_red",
+            "first_name": "Амина",
+            "last_name": null,
+            "role": "manager",
+            "status": "active",
+            "api_id": 26502193,
+            "api_hash": "841f2564dd4b3f62b440372b906374d4",
+            "string_session": "1ApWapzMBu8EGjJ4C-B_glbIOlemNqzMShYcmxVbJC9htojZU9wqSr_bTAZGC06ToS0bjl1OZMWjI8lnlzdpNnjQVj-7K0qKw3SCukcnUgcuJvOAEyMLKN1LzDnasQElngOOFNzBPK8DYJrWIayK8JlCrC2-b-So1bfR3n6SQcK-lOC38DyBqXmR8a1O0hxNQbN0sHa7rlGvbRGSZUH4TzqQ6-K-fUJChNKQD0DqE_dNBf6pr4WXaknHn9_wSvjVpEGzDnwaYgc7u8nmU2MQYPLlDIl72FVxcPyhLUUALoksCpZzgzQRO4RLMmOlaHN1saOyXBf_a0U6W4quBhJ3Bx4mPoOpF2NU=",
+            "phone": "+380630282951",
+            "proxy_ip": "5.22.204.236",
+            "proxy_port": 59100,
+            "proxy_login": "dabstep4enko",
+            "proxy_password": "FjGhduJaEN",
+            "state": "transcribe_audio__start",
+            "last_tg_api_call_at": null,
+            "state_data": null
+          },
+          "telegram": {
+            "update_id": 502824147,
+            "message": {
+              "message_id": 4648,
+              "from": {
+                "id": 8203479406,
+                "is_bot": false,
+                "first_name": "Амина",
+                "username": "amina_red",
+                "language_code": "en",
+                "is_premium": true
+              },
+              "chat": {
+                "id": 8203479406,
+                "first_name": "Амина",
+                "username": "amina_red",
+                "type": "private"
+              },
+              "date": 1760087592,
+              "audio": {
+                "duration": 655,
+                "file_name": "242_Russian_books_vocabulary_Crime_and_Punishment (1).ogg",
+                "mime_type": "audio/x-vorbis+ogg",
+                "title": "242_Russian_books_Crime_and_Punishment",
+                "performer": "Tatiana Klimova ",
+                "file_id": "CQACAgIAAxkBAAISKGjoziiXjdRVDqUb32bzLD0V-bg1AAKYhwACGhBBS8SZYtVwAsggNgQ",
+                "file_unique_id": "AgADmIcAAhoQQUs",
+                "file_size": 6846812
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "versionId": "ab2c4352-92d1-4610-8647-eb80338c1d53",
+  "activeVersionId": "ab2c4352-92d1-4610-8647-eb80338c1d53",
+  "versionCounter": 3,
+  "triggerCount": 0,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2025-10-10T09:02:51.929Z",
+      "createdAt": "2025-10-10T09:02:51.929Z",
+      "role": "workflow:owner",
+      "workflowId": "p63RSJqBqCvj3thq",
+      "projectId": "otThis0Dzllfqt7v",
+      "project": {
+        "updatedAt": "2025-08-20T18:30:26.018Z",
+        "createdAt": "2025-08-20T18:23:04.813Z",
+        "id": "otThis0Dzllfqt7v",
+        "name": "Ada Sales <dragmastery@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "b0f4cf25-2d4a-4614-b225-fe05addaa1fc"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

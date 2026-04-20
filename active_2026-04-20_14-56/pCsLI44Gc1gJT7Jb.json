@@ -1,0 +1,182 @@
+{
+  "updatedAt": "2025-10-10T08:33:55.331Z",
+  "createdAt": "2025-10-04T11:01:43.607Z",
+  "id": "pCsLI44Gc1gJT7Jb",
+  "name": "Convert tg audio file to text",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "telegram",
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "7886fc88-d485-4ea4-8bdb-c6bc43503a6e",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://148.230.104.29:8000/process_last_audio",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "account_id",
+              "value": "={{ $json.telegram.message.from.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        0
+      ],
+      "id": "431e2dda-2e38-48f9-9a04-855b4ed7a25a",
+      "name": "TR accounts api: process last audio in chat",
+      "alwaysOutputData": false,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "m7RprwkaG3kF5L6E",
+          "name": "Auth Token for tg_account_api script"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ---------- 1. Get data from previous node ----------\nconst data = $('TR accounts api: process last audio in chat').first().json\n\n// ---------- 2. Safely extract utterances ----------\nconst utterances = data.transcription?.results?.utterances || [];\n\nif (!utterances.length) {\n  return [{\n    json: {\n      dialogue: [],\n      markdown_output: \"_No utterances found in transcription_\",\n    }\n  }];\n}\n\n// ---------- 3. Sort utterances by start time ----------\nutterances.sort((a, b) => a.start - b.start);\n\n// ---------- 4. Merge consecutive utterances of the same speaker with punctuation ----------\nconst dialogue = [];\nlet currentSpeaker = null;\nlet currentText = '';\nlet startTime = null;\nlet endTime = null;\nlet confidences = [];\n\nfor (const u of utterances) {\n  const speaker = u.speaker ?? 0;\n  const text = u.transcript.trim();\n\n  if (currentSpeaker === null) {\n    // Initialize first block\n    currentSpeaker = speaker;\n    currentText = text;\n    startTime = u.start;\n    endTime = u.end;\n    confidences = [u.confidence ?? 0];\n  } else if (speaker === currentSpeaker) {\n    // Same speaker → append with proper punctuation\n    const lastChar = currentText.slice(-1);\n    const punctuation = ['.', '!', '?'].includes(lastChar) ? ' ' : '. ';\n    currentText += punctuation + text;\n    endTime = u.end;\n    confidences.push(u.confidence ?? 0);\n  } else {\n    // Speaker changed → push previous block\n    dialogue.push({\n      speaker: currentSpeaker,\n      text: currentText,\n      start: Number(startTime.toFixed(2)),\n      end: Number(endTime.toFixed(2)),\n      confidence_avg: (confidences.reduce((a,b)=>a+b,0)/confidences.length).toFixed(3),\n    });\n\n    // Start new speaker block\n    currentSpeaker = speaker;\n    currentText = text;\n    startTime = u.start;\n    endTime = u.end;\n    confidences = [u.confidence ?? 0];\n  }\n}\n\n// ---------- 5. Push the last speaker block ----------\nif (currentText) {\n  dialogue.push({\n    speaker: currentSpeaker,\n    text: currentText,\n    start: Number(startTime.toFixed(2)),\n    end: Number(endTime.toFixed(2)),\n    confidence_avg: (confidences.reduce((a,b)=>a+b,0)/confidences.length).toFixed(3),\n  });\n}\n\n// ---------- 6. Create Markdown output ----------\nconst markdown = dialogue\n  .map(d => `**Speaker ${d.speaker} (${d.start}s–${d.end}s):**\\n${d.text}`)\n  .join(\"\\n\\n\");\n\n// ---------- 7. Return structured data ----------\nreturn [{\n  json: {\n    dialogue,\n    markdown_output: markdown,\n    meta: {\n      duration: data.transcription?.metadata?.duration || null,\n      model: data.transcription?.metadata?.model_info\n        ? Object.values(data.transcription.metadata.model_info)[0]?.name\n        : null,\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        -64
+      ],
+      "id": "a802c0cc-7325-423d-b712-9d2b2013e5d7",
+      "name": "Format dialog json"
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "TR accounts api: process last audio in chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TR accounts api: process last audio in chat": {
+      "main": [
+        [
+          {
+            "node": "Format dialog json",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "telegram": {
+            "update_id": 502824129,
+            "message": {
+              "message_id": 4611,
+              "from": {
+                "id": 8203479406,
+                "is_bot": false,
+                "first_name": "Амина",
+                "username": "amina_red",
+                "language_code": "en",
+                "is_premium": true
+              },
+              "chat": {
+                "id": 8203479406,
+                "first_name": "Амина",
+                "username": "amina_red",
+                "type": "private"
+              },
+              "date": 1760084916,
+              "audio": {
+                "duration": 655,
+                "file_name": "242_Russian_books_vocabulary_Crime_and_Punishment (1).mp3",
+                "mime_type": "audio/mpeg",
+                "title": "242_Russian_books_Crime_and_Punishment",
+                "performer": "Tatiana Klimova ",
+                "file_id": "CQACAgIAAxkBAAISA2jow7QdXodhtO14P5ceDSRCXA5ZAAK9hgACGhBBSy29HIegsLVmNgQ",
+                "file_unique_id": "AgADvYYAAhoQQUs",
+                "file_size": 10483338
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "versionId": "57adc6e6-9ec3-402c-8dd5-b1af67702e58",
+  "activeVersionId": "57adc6e6-9ec3-402c-8dd5-b1af67702e58",
+  "versionCounter": 3,
+  "triggerCount": 0,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2025-10-04T11:01:43.607Z",
+      "createdAt": "2025-10-04T11:01:43.607Z",
+      "role": "workflow:owner",
+      "workflowId": "pCsLI44Gc1gJT7Jb",
+      "projectId": "otThis0Dzllfqt7v",
+      "project": {
+        "updatedAt": "2025-08-20T18:30:26.018Z",
+        "createdAt": "2025-08-20T18:23:04.813Z",
+        "id": "otThis0Dzllfqt7v",
+        "name": "Ada Sales <dragmastery@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "b0f4cf25-2d4a-4614-b225-fe05addaa1fc"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

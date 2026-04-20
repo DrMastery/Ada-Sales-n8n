@@ -1,0 +1,535 @@
+{
+  "updatedAt": "2025-09-02T15:30:18.052Z",
+  "createdAt": "2025-09-02T13:54:11.953Z",
+  "id": "6PGhJWkP2yYnbbKV",
+  "name": "Find lead",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "manager",
+              "type": "object"
+            },
+            {
+              "name": "telegram",
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1472,
+        256
+      ],
+      "id": "9419c6fa-02e8-4576-be62-c61de3ca546a",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by Another Workflow').item.json.manager.id }}",
+        "text": "Лид по этим данным не найден. Введите ещё раз либо username, либо имя, либо id.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        464,
+        544
+      ],
+      "id": "3c2da192-c95f-4c84-9f80-85377c4becbf",
+      "name": "Send text: not found lead",
+      "webhookId": "68f32ba9-f692-40de-a4a2-3f95d49ad45b",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "tg_leads",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "user_id",
+              "keyValue": "={{ $('When Executed by Another Workflow').item.json.telegram.message.text }}"
+            },
+            {
+              "keyName": "added_by",
+              "keyValue": "={{ $('When Executed by Another Workflow').first().json.manager.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -976,
+        80
+      ],
+      "id": "03cd33ac-8a9c-4f0b-970b-cc8e800fb8c5",
+      "name": "Get manager leads by user id",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e84957da-d8fc-4e66-bd5a-32af8bb42885",
+              "leftValue": "={{ $('Get manager leads by user id').item.json.isNotEmpty() }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -768,
+        80
+      ],
+      "id": "e9e04a6e-11a8-45a6-84a4-651e54be2515",
+      "name": "if (user_id)"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "tg_leads",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "username",
+              "keyValue": "={{ $('When Executed by Another Workflow').item.json.telegram.message.text }}"
+            },
+            {
+              "keyName": "added_by",
+              "keyValue": "={{ $('When Executed by Another Workflow').first().json.manager.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        272
+      ],
+      "id": "22b0b161-db4b-4d52-8943-6b9ca523e65b",
+      "name": "Get manager leads by username",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "tg_leads",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "full_name",
+              "keyValue": "={{ $('When Executed by Another Workflow').item.json.telegram.message.text }}"
+            },
+            {
+              "keyName": "added_by",
+              "keyValue": "={{ $('When Executed by Another Workflow').first().json.manager.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        432
+      ],
+      "id": "2ee3ecfc-e996-412e-915b-c5e5460ab9f1",
+      "name": "Get manager leads by full name",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e84957da-d8fc-4e66-bd5a-32af8bb42885",
+              "leftValue": "={{ $('Get manager leads by username').item.json.isNotEmpty() }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -240,
+        272
+      ],
+      "id": "53e72ccd-c09a-4254-9044-8c4014edcd0d",
+      "name": "if (username)"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e84957da-d8fc-4e66-bd5a-32af8bb42885",
+              "leftValue": "={{ $('Get manager leads by full name').item.json.isNotEmpty() }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        192,
+        432
+      ],
+      "id": "5cee7a9c-5d10-4b29-89f1-5bd0f00412ed",
+      "name": "if (full name)"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e84957da-d8fc-4e66-bd5a-32af8bb42885",
+              "leftValue": "={{ $('When Executed by Another Workflow').item.json.telegram.message.text.isNumeric() }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1248,
+        256
+      ],
+      "id": "9fc7c80c-ffbd-4fa3-80a7-a715961d1bed",
+      "name": "if text is number"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"is_found\": true,\n  \"lead_data\": {{ $json }}\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        576,
+        48
+      ],
+      "id": "95596f74-8855-482d-a017-f5e048309343",
+      "name": "Result"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"is_found\": false,\n  \"lead_data\": null\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        736,
+        544
+      ],
+      "id": "8bc29554-7712-403c-ac21-96e71813d251",
+      "name": "Result: false"
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "if text is number",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get manager leads by user id": {
+      "main": [
+        [
+          {
+            "node": "if (user_id)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "if (user_id)": {
+      "main": [
+        [
+          {
+            "node": "Result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get manager leads by username",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get manager leads by username": {
+      "main": [
+        [
+          {
+            "node": "if (username)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get manager leads by full name": {
+      "main": [
+        [
+          {
+            "node": "if (full name)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "if (username)": {
+      "main": [
+        [
+          {
+            "node": "Result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get manager leads by full name",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "if (full name)": {
+      "main": [
+        [
+          {
+            "node": "Result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send text: not found lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "if text is number": {
+      "main": [
+        [
+          {
+            "node": "Get manager leads by user id",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get manager leads by username",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send text: not found lead": {
+      "main": [
+        [
+          {
+            "node": "Result: false",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "manager": {
+            "id": 8316205217,
+            "created_at": "2025-08-31T16:50:48.673932+00:00",
+            "updated_at": "2025-08-31T16:50:48.673932",
+            "tg_username": "Amina_raii",
+            "first_name": "Amina",
+            "last_name": "S",
+            "role": "manager",
+            "status": "active",
+            "api_id": 25306690,
+            "api_hash": "d67dfca70f90b052b1f29709c52fbf44",
+            "string_session": "1ApWapzMBuwM9vEBXOHw74xUI3V59q1snBhn9q4_PO6_wzNVzUZmt4k9U02LRUCgHv3eS2N7fHXMsTNBUilqlUpbUhi_ip-GWP9gvtQclICeacJTYDOs-r2z-W_0ynmxnz6V3QRJgeuo3WWsuWYTV0oH3CoP_OIw9uI4hwDZwG8XfYGmg0s7PzahM30xNVqmRMfGUi4Sr4szkkdeM0THWUH5siXk4D8U-A7YG0fWrUkw-FDd4iUNuc9cHEHG3pRTYoRCSSX_FpshMDu46L7bnwPnUfnI_WQMcf3dqElUFD9XbFr7MXWlendFRCtrI6VCahMLmFHsWpDDWZ9HHtRuX7L4U4WIa-tU=",
+            "phone": "+380998234415",
+            "proxy_ip": "5.22.206.144",
+            "proxy_port": 59100,
+            "proxy_login": "dabstep4enko",
+            "proxy_password": "FjGhduJaEN",
+            "state": "create_lead__name_input",
+            "last_tg_api_call_at": null,
+            "state_data": null
+          },
+          "telegram": {
+            "message_id": 1806,
+            "from": {
+              "id": 8316205217,
+              "is_bot": false,
+              "first_name": "Amina",
+              "last_name": "S",
+              "username": "Amina_raii",
+              "language_code": "en"
+            },
+            "chat": {
+              "id": 8316205217,
+              "first_name": "Amina",
+              "last_name": "S",
+              "username": "Amina_raii",
+              "type": "private"
+            },
+            "date": 1756823293,
+            "text": "Vladyslav Hleb"
+          }
+        }
+      }
+    ]
+  },
+  "versionId": "705c0d4a-eeef-4740-ad58-e2809cf5c604",
+  "activeVersionId": "705c0d4a-eeef-4740-ad58-e2809cf5c604",
+  "versionCounter": 3,
+  "triggerCount": 0,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2025-09-02T13:54:11.953Z",
+      "createdAt": "2025-09-02T13:54:11.953Z",
+      "role": "workflow:owner",
+      "workflowId": "6PGhJWkP2yYnbbKV",
+      "projectId": "otThis0Dzllfqt7v",
+      "project": {
+        "updatedAt": "2025-08-20T18:30:26.018Z",
+        "createdAt": "2025-08-20T18:23:04.813Z",
+        "id": "otThis0Dzllfqt7v",
+        "name": "Ada Sales <dragmastery@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "b0f4cf25-2d4a-4614-b225-fe05addaa1fc"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

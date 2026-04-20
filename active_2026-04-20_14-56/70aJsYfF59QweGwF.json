@@ -1,0 +1,335 @@
+{
+  "updatedAt": "2025-09-02T15:56:37.502Z",
+  "createdAt": "2025-08-30T15:43:52.216Z",
+  "id": "70aJsYfF59QweGwF",
+  "name": "Lead: find lead for card",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "manager",
+              "type": "object"
+            },
+            {
+              "name": "telegram",
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        432,
+        32
+      ],
+      "id": "ae93877c-c042-4efe-aa87-488a025bce9e",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by Another Workflow').item.json.manager.id }}",
+        "text": "=Найден лид:\n\nid: `{{ $('If found').first().json.lead_data.user_id}}`\nusername: `{{ $('If found').first().json.lead_data.username}}`\nname: `{{ $('If found').first().json.lead_data.full_name}}`",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Начать создание карточки",
+                    "additionalFields": {
+                      "callback_data": "=create_lead__message_to_add_source"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1328,
+        16
+      ],
+      "id": "5372e9e7-2cda-4361-b456-0df71c9cf945",
+      "name": "Send text: lead card and button",
+      "webhookId": "e9f4ce0e-7b53-44c1-921f-bfc13fed4dd3",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "tg_accounts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('When Executed by Another Workflow').item.json.manager.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "state",
+              "fieldValue": "=create_lead__start"
+            },
+            {
+              "fieldId": "state_data",
+              "fieldValue": "={\n  \"create_lead\": {\n    \"user_id\": {{ $('If found').item.json.lead_data.user_id }},\n    \"db_row\": {{ $('If found').item.json.lead_data.toJsonString() }}\n  }\n}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        16
+      ],
+      "id": "bcb9b8d8-45a8-4fe1-ad8f-5010997f1d95",
+      "name": "Update state: create_lead__start",
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "n9JnZXSxn26bskWH",
+          "mode": "list",
+          "cachedResultName": "Find lead (with first)"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "manager": "={{ $json.manager }}",
+            "telegram": "={{ $json.telegram }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "manager",
+              "displayName": "manager",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "telegram",
+              "displayName": "telegram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        656,
+        32
+      ],
+      "id": "4df25643-6448-4479-a9d8-1e5b4dc95f51",
+      "name": "Find lead"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d207d4ab-c56f-48d5-a3a7-d6c9ff68c94f",
+              "leftValue": "={{ $('Find lead').item.json.is_found }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        864,
+        32
+      ],
+      "id": "ac87e08f-4a54-467f-8316-5a52fc90f870",
+      "name": "If found"
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Find lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send text: lead card and button": {
+      "main": [
+        []
+      ]
+    },
+    "Update state: create_lead__start": {
+      "main": [
+        [
+          {
+            "node": "Send text: lead card and button",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find lead": {
+      "main": [
+        [
+          {
+            "node": "If found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If found": {
+      "main": [
+        [
+          {
+            "node": "Update state: create_lead__start",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "manager": {
+            "id": 8316205217,
+            "created_at": "2025-09-02T15:49:24.919184+00:00",
+            "updated_at": "2025-09-02T15:49:24.919184",
+            "tg_username": "Amina_raii",
+            "first_name": "Amina",
+            "last_name": "S",
+            "role": "manager",
+            "status": "active",
+            "api_id": 25306690,
+            "api_hash": "d67dfca70f90b052b1f29709c52fbf44",
+            "string_session": "1ApWapzMBux6F7Xv_aTQCpvXoiYuiWro3RsdMJfJb8h2YOyVATfetZYUJA5x73jfXJOhVV9ZF6pCUa9cxmZHFrRKHCjSWTVThJkeTWFlP0qtCimeiQVXZvkkbnUQa5sWhDDUTVqRAWYR__QUh0KdEOXf-2eaOlN_OChnaXgQF4KdHoSTfjexkigQAbZez5k2IMNS4JVC1nbPRgx3kfLqGqhuHOMRfzrqfUfGRBm_YVwXm7_ef-JwLW1OHnl8JMTbdo3i0zUpyodd5oDPydOI-hbxQPM97lAyIMEIpG8g-dB5gn2PRjq6rNYcebIIMg2LUra6EyY-DUylFZEnGY0IAXLJx9Hptd5c=",
+            "phone": "+380998234415",
+            "proxy_ip": "5.22.206.144",
+            "proxy_port": 59100,
+            "proxy_login": "dabstep4enko",
+            "proxy_password": "FjGhduJaEN",
+            "state": "create_lead__name_input",
+            "last_tg_api_call_at": null,
+            "state_data": null
+          },
+          "telegram": {
+            "message_id": 1977,
+            "from": {
+              "id": 8316205217,
+              "is_bot": false,
+              "first_name": "Amina",
+              "last_name": "S",
+              "username": "Amina_raii",
+              "language_code": "en"
+            },
+            "chat": {
+              "id": 8316205217,
+              "first_name": "Amina",
+              "last_name": "S",
+              "username": "Amina_raii",
+              "type": "private"
+            },
+            "date": 1756828485,
+            "text": "Vladyslav Hleb"
+          }
+        }
+      }
+    ]
+  },
+  "versionId": "21ff4d61-a588-4360-a5fb-673b18692a98",
+  "activeVersionId": "21ff4d61-a588-4360-a5fb-673b18692a98",
+  "versionCounter": 3,
+  "triggerCount": 0,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2025-08-30T15:43:52.216Z",
+      "createdAt": "2025-08-30T15:43:52.216Z",
+      "role": "workflow:owner",
+      "workflowId": "70aJsYfF59QweGwF",
+      "projectId": "otThis0Dzllfqt7v",
+      "project": {
+        "updatedAt": "2025-08-20T18:30:26.018Z",
+        "createdAt": "2025-08-20T18:23:04.813Z",
+        "id": "otThis0Dzllfqt7v",
+        "name": "Ada Sales <dragmastery@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "b0f4cf25-2d4a-4614-b225-fe05addaa1fc"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

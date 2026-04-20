@@ -1,0 +1,326 @@
+{
+  "updatedAt": "2025-08-29T10:07:51.026Z",
+  "createdAt": "2025-08-28T17:13:23.751Z",
+  "id": "2ZDZj4tjaROYByJC",
+  "name": "From: fill proxy creds",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Poxy Creds for new tg account api",
+        "formDescription": "🔑 Укажите PROXY creds",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "IP",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Port",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Login"
+            },
+            {
+              "fieldLabel": "Password"
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": false,
+          "buttonLabel": "Save",
+          "path": "fill-proxy-creds"
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -256,
+        0
+      ],
+      "id": "d9cc2340-2997-4e7f-973a-99ab0b648aa0",
+      "name": "On form submission",
+      "webhookId": "4c8cf9cf-07b6-4227-b958-d840b8123364"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "tg_accounts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $json.formQueryParameters.tg_new_user_id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "proxy_ip",
+              "fieldValue": "={{ $json.IP }}"
+            },
+            {
+              "fieldId": "proxy_port",
+              "fieldValue": "={{ $json.Port }}"
+            },
+            {
+              "fieldId": "proxy_login",
+              "fieldValue": "={{ $json.Login }}"
+            },
+            {
+              "fieldId": "proxy_password",
+              "fieldValue": "={{ $json.Password }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "14dea02b-bda9-4d6d-aec0-f5f2ba60946a",
+      "name": "Save new account: proxy data",
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('On form submission').item.json.formQueryParameters.admin_chat_id }}",
+        "text": "=🔑 Укажите ключи API аккаунта нового пользователя",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Заполнить",
+                    "additionalFields": {
+                      "url": "=https://n8n.srv927081.hstgr.cloud/form/fill-tg-account-api-creds?tg_new_user_id={{ $('On form submission').item.json.formQueryParameters.tg_new_user_id }}&admin_chat_id={{ $('On form submission').item.json.formQueryParameters.admin_chat_id }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        464,
+        -80
+      ],
+      "id": "9a5aca1f-2af7-4b6b-8d11-443bbd255d2a",
+      "name": "Send text: get account api creds",
+      "webhookId": "5e003f04-1e9f-4ac7-b281-877202b1a958",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "http://ipinfo.io/ip",
+        "options": {
+          "proxy": "=http://{{ $json.proxy_login }}:{{ $json.proxy_password }}@{{ $json.proxy_ip }}:{{ $json.proxy_port }}"
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "3f9bbfa6-09f6-4fdd-b667-e33b6cd55c3a",
+      "name": "Check proxy",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('On form submission').item.json.formQueryParameters.admin_chat_id }}",
+        "text": "=❌ Ошибка:\n`{{ $json.error.message }}`",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        464,
+        128
+      ],
+      "id": "91d2144a-e95f-4225-b25d-4198f5659bfc",
+      "name": "Send text: error in send code",
+      "webhookId": "15b4ba02-381e-4bc0-9454-c3f3e26fa15b",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('On form submission').item.json.formQueryParameters.admin_chat_id }}",
+        "text": "=🔑 Укажите `proxy creds` нового акканта",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Заполнить",
+                    "additionalFields": {
+                      "url": "=https://n8n.srv927081.hstgr.cloud/form/fill-proxy-creds?tg_new_user_id={{ $('On form submission').item.json.formQueryParameters.tg_new_user_id }}&admin_chat_id={{ $('On form submission').item.json.formQueryParameters.admin_chat_id }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        688,
+        128
+      ],
+      "id": "c03ca8ea-ae89-4752-9252-ca229ec767b4",
+      "name": "Send text: get account proxy creds",
+      "webhookId": "c62569aa-65eb-4561-b97d-00d23bfcee9b",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Save new account: proxy data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save new account: proxy data": {
+      "main": [
+        [
+          {
+            "node": "Check proxy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check proxy": {
+      "main": [
+        [
+          {
+            "node": "Send text: get account api creds",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send text: error in send code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send text: error in send code": {
+      "main": [
+        [
+          {
+            "node": "Send text: get account proxy creds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {
+    "On form submission": [
+      {
+        "json": {
+          "IP": "11",
+          "Port": 11,
+          "Login": "11",
+          "Password": "11",
+          "submittedAt": "2025-08-28T19:20:02.463+02:00",
+          "formMode": "test",
+          "formQueryParameters": {
+            "tg_new_user_id": "8203479406",
+            "admin_chat_id": "7280425346"
+          }
+        }
+      }
+    ]
+  },
+  "versionId": "f705cb95-185b-4d92-9b37-1c39b7c6634b",
+  "activeVersionId": "f705cb95-185b-4d92-9b37-1c39b7c6634b",
+  "versionCounter": 3,
+  "triggerCount": 1,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2025-08-28T17:13:23.751Z",
+      "createdAt": "2025-08-28T17:13:23.751Z",
+      "role": "workflow:owner",
+      "workflowId": "2ZDZj4tjaROYByJC",
+      "projectId": "otThis0Dzllfqt7v",
+      "project": {
+        "updatedAt": "2025-08-20T18:30:26.018Z",
+        "createdAt": "2025-08-20T18:23:04.813Z",
+        "id": "otThis0Dzllfqt7v",
+        "name": "Ada Sales <dragmastery@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "b0f4cf25-2d4a-4614-b225-fe05addaa1fc"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

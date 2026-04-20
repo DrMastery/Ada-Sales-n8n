@@ -1,0 +1,178 @@
+{
+  "updatedAt": "2025-09-02T11:56:35.010Z",
+  "createdAt": "2025-09-02T10:43:50.938Z",
+  "id": "8cx40WBEaaXty5vr",
+  "name": "Lead: run command to add comment",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "manager",
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -176,
+        -64
+      ],
+      "id": "e244529a-cca2-49e0-89f0-b5364ba529e1",
+      "name": "When Executed by Master"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by Master').item.json.manager.id }}",
+        "text": "=Введите `user_id` или `username` или `name` лида",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        96,
+        -64
+      ],
+      "id": "bd583ebe-20be-4b91-9088-b3db93cc8dc5",
+      "name": "Send text: ask to add comment",
+      "webhookId": "440b5dc4-d8b8-485a-8731-14decd4a33c1",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "tg_accounts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Send text: ask to add comment').item.json.result.chat.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "state",
+              "fieldValue": "update_lead__comment__ask_name"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        352,
+        -64
+      ],
+      "id": "41df47fa-1e6a-456c-8b72-2280a1cfd4b0",
+      "name": "update state: update_lead__comment__ask_name",
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Master": {
+      "main": [
+        [
+          {
+            "node": "Send text: ask to add comment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send text: ask to add comment": {
+      "main": [
+        [
+          {
+            "node": "update state: update_lead__comment__ask_name",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {
+    "When Executed by Master": [
+      {
+        "json": {
+          "manager": {
+            "id": 8316205217,
+            "created_at": "2025-08-31T16:50:48.673932+00:00",
+            "updated_at": "2025-08-31T16:50:48.673932",
+            "tg_username": "Amina_raii",
+            "first_name": "Amina",
+            "last_name": "S",
+            "role": "manager",
+            "status": "active",
+            "api_id": 25306690,
+            "api_hash": "d67dfca70f90b052b1f29709c52fbf44",
+            "string_session": "1ApWapzMBuwM9vEBXOHw74xUI3V59q1snBhn9q4_PO6_wzNVzUZmt4k9U02LRUCgHv3eS2N7fHXMsTNBUilqlUpbUhi_ip-GWP9gvtQclICeacJTYDOs-r2z-W_0ynmxnz6V3QRJgeuo3WWsuWYTV0oH3CoP_OIw9uI4hwDZwG8XfYGmg0s7PzahM30xNVqmRMfGUi4Sr4szkkdeM0THWUH5siXk4D8U-A7YG0fWrUkw-FDd4iUNuc9cHEHG3pRTYoRCSSX_FpshMDu46L7bnwPnUfnI_WQMcf3dqElUFD9XbFr7MXWlendFRCtrI6VCahMLmFHsWpDDWZ9HHtRuX7L4U4WIa-tU=",
+            "phone": "+380998234415",
+            "proxy_ip": "5.22.206.144",
+            "proxy_port": 59100,
+            "proxy_login": "dabstep4enko",
+            "proxy_password": "FjGhduJaEN",
+            "state": null,
+            "last_tg_api_call_at": null,
+            "state_data": null
+          }
+        }
+      }
+    ]
+  },
+  "versionId": "2c2f4b29-97b2-4e56-855b-28f1cd2e3e38",
+  "activeVersionId": "2c2f4b29-97b2-4e56-855b-28f1cd2e3e38",
+  "versionCounter": 3,
+  "triggerCount": 0,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2025-09-02T10:43:50.938Z",
+      "createdAt": "2025-09-02T10:43:50.938Z",
+      "role": "workflow:owner",
+      "workflowId": "8cx40WBEaaXty5vr",
+      "projectId": "otThis0Dzllfqt7v",
+      "project": {
+        "updatedAt": "2025-08-20T18:30:26.018Z",
+        "createdAt": "2025-08-20T18:23:04.813Z",
+        "id": "otThis0Dzllfqt7v",
+        "name": "Ada Sales <dragmastery@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "b0f4cf25-2d4a-4614-b225-fe05addaa1fc"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

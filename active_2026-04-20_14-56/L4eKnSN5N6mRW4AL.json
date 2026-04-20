@@ -1,0 +1,187 @@
+{
+  "updatedAt": "2025-10-10T12:24:48.873Z",
+  "createdAt": "2025-10-10T12:13:54.562Z",
+  "id": "L4eKnSN5N6mRW4AL",
+  "name": "Get all comments of lead",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "lead_user_id",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -368,
+        336
+      ],
+      "id": "40f46f30-275a-4bc7-b6c7-3fb9cfbad05b",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = Array.from($('CRM: get leads').all().values());\n\nconst tgUserIdToFind = $('When Executed by Another Workflow').first().json.lead_user_id\nconst result = data.find(item => {\n  const tgId = item.json.tg_user_id;\n  const deleted = item.json.deleted;\n  return tgId != null && String(tgId) === String(tgUserIdToFind) && deleted === \"0\";\n});\n\nreturn result ? [{ json: result.json }] : [];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        64,
+        336
+      ],
+      "id": "24b9d8dc-0853-4231-88ef-4a628382cf8c",
+      "name": "CRM: Get lead from"
+    },
+    {
+      "parameters": {
+        "url": "https://ada-sale.online/index.php/api/leads",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authtoken",
+              "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJ1c2VyIjoic2VjdXNweWNvZGVAZ21haWwuY29tIiwibmFtZSI6IlZsYWRpbWlyIiwiQVBJX1RJTUUiOjE3NTUxODI4NTB9.0ulouSbP4bfsxFL8RsSYkg_BxdAIHCT744VE738_eakUWBvjD-9_xme5H8wG0574CA6NN3HrdAYR-CiQUWQGxg"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -160,
+        336
+      ],
+      "id": "612bffb9-2bfa-4ded-b7cf-1894ee6882dc",
+      "name": "CRM: get leads"
+    },
+    {
+      "parameters": {
+        "url": "=https://ada-sale.online/index.php/api/lead-notes?client_id={{ $json.id.toNumber() }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authtoken",
+              "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJ1c2VyIjoic2VjdXNweWNvZGVAZ21haWwuY29tIiwibmFtZSI6IlZsYWRpbWlyIiwiQVBJX1RJTUUiOjE3NTUxODI4NTB9.0ulouSbP4bfsxFL8RsSYkg_BxdAIHCT744VE738_eakUWBvjD-9_xme5H8wG0574CA6NN3HrdAYR-CiQUWQGxg"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        288,
+        336
+      ],
+      "id": "d8435300-2a8b-4430-a99d-5f29a3fa7e53",
+      "name": "CRM: get lead comments",
+      "alwaysOutputData": true
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "CRM: get leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM: Get lead from": {
+      "main": [
+        [
+          {
+            "node": "CRM: get lead comments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM: get leads": {
+      "main": [
+        [
+          {
+            "node": "CRM: Get lead from",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM: get lead comments": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "lead_user_id": 338216406
+        }
+      }
+    ]
+  },
+  "versionId": "6c46f587-189b-4d44-aaa2-16cb4f17bcb9",
+  "activeVersionId": "6c46f587-189b-4d44-aaa2-16cb4f17bcb9",
+  "versionCounter": 3,
+  "triggerCount": 0,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2025-10-10T12:13:54.562Z",
+      "createdAt": "2025-10-10T12:13:54.562Z",
+      "role": "workflow:owner",
+      "workflowId": "L4eKnSN5N6mRW4AL",
+      "projectId": "otThis0Dzllfqt7v",
+      "project": {
+        "updatedAt": "2025-08-20T18:30:26.018Z",
+        "createdAt": "2025-08-20T18:23:04.813Z",
+        "id": "otThis0Dzllfqt7v",
+        "name": "Ada Sales <dragmastery@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "b0f4cf25-2d4a-4614-b225-fe05addaa1fc"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

@@ -1,0 +1,444 @@
+{
+  "updatedAt": "2025-09-02T19:37:00.016Z",
+  "createdAt": "2025-08-20T18:35:51.507Z",
+  "id": "zPLVnNxBmYOKydt7",
+  "name": "New User",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "chatId": "={{ $('Create a user').item.json.id }}",
+        "text": "=Ваш аккаунт создаётся. Пожалуйста, ожидайте… ",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        576,
+        -144
+      ],
+      "id": "25ee1412-6ef0-4df6-9ab6-dcfb5e4811b3",
+      "name": "Send message: basic registered",
+      "webhookId": "faf32942-be04-44bd-926f-22f93ec750c2",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "tg_accounts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "keyValue": "={{ $('When Executed by Master').item.json.telegram.message.from.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -512,
+        48
+      ],
+      "id": "a7dedbbd-52c9-4d9d-939c-6cb10e2ead63",
+      "name": "Get user",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "8dd41140-71ea-4876-b91d-373faf7351f6",
+              "leftValue": "={{ $('Get user').item.json.isEmpty()}}",
+              "rightValue": "=1",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -288,
+        48
+      ],
+      "id": "bf83c25d-af65-4851-9a06-c96d186d5a15",
+      "name": "New user?"
+    },
+    {
+      "parameters": {
+        "tableId": "tg_accounts",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "id",
+              "fieldValue": "={{ $('When Executed by Master').item.json.telegram.message.from.id }}"
+            },
+            {
+              "fieldId": "tg_username",
+              "fieldValue": "={{ $('When Executed by Master').item.json.telegram.message.from.username }}"
+            },
+            {
+              "fieldId": "first_name",
+              "fieldValue": "={{ $('When Executed by Master').item.json.telegram.message.from.first_name }}"
+            },
+            {
+              "fieldId": "last_name",
+              "fieldValue": "={{ $('When Executed by Master').item.json.telegram.message.from.last_name }}"
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "new"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        48,
+        -80
+      ],
+      "id": "db4314f5-2ea9-4658-bc32-284c8999621f",
+      "name": "Create a user",
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "tg_accounts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "role",
+              "keyValue": "super_admin"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "active"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        816,
+        -144
+      ],
+      "id": "d4610248-0a25-4ec3-a3dd-89df03100f26",
+      "name": "Get super_admin",
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.id }}",
+        "text": "=Добавлен в систему новый пользователь:\n\n- telegram username: `{{ $('Create a user').item.json.tg_username }}`\n- first name: `{{ $('Create a user').item.json.first_name }}`\n- last name: `{{ $('Create a user').item.json.last_name }}`\n\nНазначте ему роль — «manager» или «expert». ",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Manager",
+                    "additionalFields": {
+                      "callback_data": "=set_manager_role_for_{{ $('Create a user').item.json.id }}"
+                    }
+                  },
+                  {
+                    "text": "Expert",
+                    "additionalFields": {
+                      "callback_data": "=set_expert_role_for_{{ $('Create a user').item.json.id }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1040,
+        -144
+      ],
+      "id": "a71c3580-8485-4307-bf30-49b494a167ae",
+      "name": "Send message: to approve",
+      "webhookId": "91aaaa17-bae9-473f-ab05-4e8b07f72074",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "telegram",
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -720,
+        48
+      ],
+      "id": "a6e8f5b5-be66-4554-b183-905bac968e85",
+      "name": "When Executed by Master"
+    },
+    {
+      "parameters": {
+        "tableId": "tg_leads",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $('Create a user').item.json.id }}"
+            },
+            {
+              "fieldId": "first_name",
+              "fieldValue": "={{ $('Create a user').item.json.first_name }}"
+            },
+            {
+              "fieldId": "last_name",
+              "fieldValue": "={{ $('Create a user').item.json.last_name }}"
+            },
+            {
+              "fieldId": "username",
+              "fieldValue": "={{ $('Create a user').item.json.tg_username }}"
+            },
+            {
+              "fieldId": "folder",
+              "fieldValue": "Ignore"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        304,
+        -80
+      ],
+      "id": "e47c0175-6bcf-46a1-9c17-52355a9f8187",
+      "name": "Add to tg_leads and make it ignored",
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    }
+  ],
+  "connections": {
+    "Send message: basic registered": {
+      "main": [
+        [
+          {
+            "node": "Get super_admin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get user": {
+      "main": [
+        [
+          {
+            "node": "New user?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "New user?": {
+      "main": [
+        [
+          {
+            "node": "Create a user",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Create a user": {
+      "main": [
+        [
+          {
+            "node": "Add to tg_leads and make it ignored",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get super_admin": {
+      "main": [
+        [
+          {
+            "node": "Send message: to approve",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Master": {
+      "main": [
+        [
+          {
+            "node": "Get user",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add to tg_leads and make it ignored": {
+      "main": [
+        [
+          {
+            "node": "Send message: basic registered",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send message: basic registered",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "When Executed by Master": [
+      {
+        "json": {
+          "telegram": {
+            "update_id": 502822981,
+            "message": {
+              "message_id": 2129,
+              "from": {
+                "id": 8316205217,
+                "is_bot": false,
+                "first_name": "Amina",
+                "last_name": "S",
+                "username": "Amina_raii",
+                "language_code": "en"
+              },
+              "chat": {
+                "id": 8316205217,
+                "first_name": "Amina",
+                "last_name": "S",
+                "username": "Amina_raii",
+                "type": "private"
+              },
+              "date": 1756841639,
+              "text": "/start",
+              "entities": [
+                {
+                  "offset": 0,
+                  "length": 6,
+                  "type": "bot_command"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  "versionId": "3dc7144d-84a0-42fd-9701-7e68a6bec48a",
+  "activeVersionId": "3dc7144d-84a0-42fd-9701-7e68a6bec48a",
+  "versionCounter": 3,
+  "triggerCount": 0,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2025-08-20T18:35:51.507Z",
+      "createdAt": "2025-08-20T18:35:51.507Z",
+      "role": "workflow:owner",
+      "workflowId": "zPLVnNxBmYOKydt7",
+      "projectId": "otThis0Dzllfqt7v",
+      "project": {
+        "updatedAt": "2025-08-20T18:30:26.018Z",
+        "createdAt": "2025-08-20T18:23:04.813Z",
+        "id": "otThis0Dzllfqt7v",
+        "name": "Ada Sales <dragmastery@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "b0f4cf25-2d4a-4614-b225-fe05addaa1fc"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

@@ -1,0 +1,886 @@
+{
+  "updatedAt": "2026-04-20T10:38:17.139Z",
+  "createdAt": "2025-10-10T12:09:14.756Z",
+  "id": "IgLOjU80jZrtlxUQ",
+  "name": "Lead: generate full segmentation comment by AI -> process + finish",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed Master').first().json.manager.id }}",
+        "text": "=ℹ️ Комментарии к лиду отсутствуют.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1072,
+        432
+      ],
+      "id": "62f93b8b-3f30-41da-b4f7-1cb32d234d70",
+      "name": "Send text: error in send code",
+      "webhookId": "15b4ba02-381e-4bc0-9454-c3f3e26fa15b",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "manager",
+              "type": "object"
+            },
+            {
+              "name": "telegram",
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1680,
+        288
+      ],
+      "id": "289b6b78-0a99-4bb7-b3e3-aa9e5c55e3c5",
+      "name": "When Executed Master"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"$schema\": \"http://json-schema.org/draft-07/schema#\",\n  \"title\": \"LeadInfo\",\n  \"type\": \"object\",\n  \"properties\": {\n    \"notes_full\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"title\": { \"type\": \"string\", \"description\": \"Заголовок Markdown блока полной сегментации\" },\n        \"content\": { \"type\": \"string\", \"description\": \"Содержимое Markdown блока полной сегментации\" }\n      },\n      \"required\": [\"title\", \"content\"]\n    }\n  },\n  \"required\": [\"notes_full\"],\n  \"additionalProperties\": false\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1152,
+        256
+      ],
+      "id": "166e7fff-5cff-400e-a61f-1c9bfb712037",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "tg_accounts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('When Executed Master').first().json.manager.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "state",
+              "fieldValue": "={{ null }}"
+            },
+            {
+              "fieldId": "state_data",
+              "fieldValue": "={{ null }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2256,
+        144
+      ],
+      "id": "de746105-80f8-4474-bacb-b82db9bec69c",
+      "name": "Update state: reset",
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Maximum length for each Telegram message (keeping a small buffer for MarkdownV2)\nconst maxLength = 4000;\n\n// Build the full message from extracted fields\nconst text = $('Extract data from all the comments').first().json.output.notes_full.content;\n\n// Function to split a string into smaller chunks\nfunction chunkString(str, length) {\n  const result = [];\n  let i = 0;\n  while (i < str.length) {\n    result.push(str.slice(i, i + length));\n    i += length;\n  }\n  return result;\n}\n\n// Return an array of objects, each will become one Telegram message\nreturn chunkString(text, maxLength).map(t => ({ json: { text: t } }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        144
+      ],
+      "id": "a42933c2-ce5f-420f-a275-787b67719c5d",
+      "name": "Chunk tg message"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1808,
+        144
+      ],
+      "id": "549b6857-9a88-45a4-88f8-4386b3503042",
+      "name": "Aggregate - just to make 1 step"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed Master').first().json.manager.id}}",
+        "text": "=Комментарий полной сегментации формируется через AI, подождите…",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1456,
+        288
+      ],
+      "id": "20923173-da55-416f-adc5-2e7e28d05e34",
+      "name": "Send text: wait",
+      "webhookId": "15b4ba02-381e-4bc0-9454-c3f3e26fa15b",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "L4eKnSN5N6mRW4AL",
+          "mode": "list",
+          "cachedResultName": "Get all comments of lead"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "lead_user_id": "={{ $('When Executed Master').first().json.telegram.message.text.toNumber() }}"
+          },
+          "matchingColumns": [
+            "lead"
+          ],
+          "schema": [
+            {
+              "id": "lead_user_id",
+              "displayName": "lead_user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        336,
+        288
+      ],
+      "id": "2ec34804-25cf-4f0b-8e74-30b1de41c464",
+      "name": "Execute \"find lead comments\""
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Вы — эксперт по продажам и аналитике лидов с опытом работы с CRM. Ваша задача — извлекать только проверенные факты о потенциальном клиенте, структурировать их, выявлять мотивацию, финансовые возможности и риски, без домыслов. Результат выводите в формате Markdown и JSON, готовым к использованию менеджером.\n\n---\n\n### 🎯 Цель\nУ вас есть JSON-массив комментариев из CRM.  \nКаждый комментарий относится к **одному и тому же лиду**, но может быть получен из разных источников: заметки менеджера, аудиозвонки, AI-сегментации и т.п.\n\n**Исключения:**\n- 👩 **О девушке** — информация о **менеджере**.\n- 🎓 **Эксперт и оффер** — информация из слов эксперта - данные лида.\n- 🎓 **Итог менеджера первички** — информация о лиде также может содержаться в комментарии с `title = \"Итог менеджера первички\"`.\n- 🎓 **Возражения и красные линии** — информация о лиде также может содержаться в комментарии с `title = \"Возражения и красные линии\"`.\n\n---\n\n### 📥 Формат входных данных\nJSON-массив с объектами вида:\n\n```json\n{\n  \"title\": \"название категории комментария\",\n  \"description\": \"текст комментария (заметка или транскрибированный диалог)\",\n  \"created_at\": \"дата и время создания комментария\"\n}\n\n\n### 🧩 Правила анализа\n\n1. **Извлечение данных по смыслу:**  \n   Ищите конкретные факты и характеристики лида, даже если они разбросаны по нескольким комментариям.\n\n2. **Определение типа заметки:**  \n   - **Монолог:** если в `description` встречается только один Speaker 0, значит это монолог менеджера, который делает заметку или диктует отчёт и здесь может бить любая инфа.\n   - **Диалог:** если встречаются `Speaker 0`, `Speaker 1` и более, необходимо **определить, кто из спикеров — лид, а кто — менеджер.**  \n     #### 🔍 Правила распознавания ролей в диалоге:\n     1. Прежде чем извлекать факты, сначала **пройдись по всему `description` комментария** и выполни **анализ контекста речи**:\n        - Кто задаёт больше вопросов, ведёт диалог, предлагает, объясняет — скорее всего **менеджер**.  \n        - Кто отвечает, рассказывает о себе, своих целях, финансах, сомнениях — скорее всего **лид**.  \n        - Если присутствует `Speaker 2` или больше — третьи участники считаются **вспомогательными** и их фразы можно игнорировать.  \n     2. После определения ролей:\n        - Сделай **второй проход** по `description`, извлекая **только факты из реплик лида (`speaker = lead`)**.  \n        - Из реплик менеджера извлекай информацию **только если она подтверждает факты о лиде** (например, пересказ его слов или уточнение). \n        - Не включай фразы менеджера, если это просто вопросы, предложения или предположения.\n     Таким образом:\n     - **Первый проход:** определить, кто есть кто (лид / менеджер).  \n     - **Второй проход:** собрать факты исключительно по высказываниям лида.\n\n3. **Категории комментариев:**  \n   - `AI Базовая сегментация (первичные заметки)` (с соответствующим `title`) — общая информация о лиде.  \n   - `AI Финансовая сегментация (вторичные заметки)` (с соответствующим `title`) — финансовая информация о лиде.  \n   - `О девушке` — информация о менеджере-девушке из комментариев с соответствующим `title`.\n   - `Эксперт и оффер` — вся информация из слов эксперта из комментариев с соответствующим `title`. \n   - `Итог менеджера первички` — информация о лиде из комментариев с соответствующим `title`.  \n   - `Возражения и красные линии` — информация о лиде из комментариев с соответствующим `title`.  \n   - **Прочие комментарии** могут содержать уточняющие данные (интересы, эмоции, планы и т.п.).\n\n4. **Правила анализа текста:**  \n   - При нескольких спикерах более двух: игнорировать все роли, кроме менеджера и лида.  \n   - Удалять посторонние вставки типа «смех», «[неразборчиво]», «повтор» и т.п.\n\n5. **Общие правила анализа:**  \n   - Если данных в разделе нет — оставляйте прочерк `-`.  \n   - Приводите данные в читаемом виде, избегайте повторов.  \n   - Все числовые значения (возраст, суммы, доходы) оформляйте в человекочитаемую форму: `~2000 EUR`, `около $5,000`, `18 лет`, `год живёт в Варшаве`.\n\n6. **Инструкции по исключениям:**  \n   - «О девушке» — только данные менеджера-дувушке.\n   - «Эксперт и оффер» — брать только слова эксперта и подтверждённые данные лида. Не включайте домыслы лида, если они не подтверждены диалогом.\n\n7. **Общие рекомендации:**  \n   - Не выдумывать данные: если информации нет — оставляйте прочерк `-`, не предполагайте.  \n   - Объединение данных: если одно и то же поле встречается в нескольких комментариях, берём последнюю по дате и формируем читаемое объединение.\n\n\n### 🧾 Шаблон вывода\nЗаполните Markdown-шаблон максимально подробно на основе данных из всех комментариев:\n\n```\n# 🧾 Полная сегментация при переводе на эксперта  \n*(финальная заметка)*\n\n---\n\n## 👩 О девушке\n- **Имя:**  \n- **Фамилия:**  \n- **Возраст:**  \n- **Город:**  \n- **О себе:**  \n- **О работе:**  \n\n---\n\n## 🎓 Эксперт и оффер\n- **Легенда (наследство / академия / институт / квиз):**  \n- **Продажа созвона с экспертом:**  \n- **Реакция на продажу (доверие / скепсис):**  \n- **Когда согласен на созвон:**  \n\n---\n\n## 🎓 Итог менеджера первички\n- **Ожидания по лиду:**  \n- **Рекомендуемый следующий заход / угол:**  \n- **Следующее действие и срок:**  \n- **Личные ощущения по общению:**  \n\n---\n\n## 🎓 Возражения и красные линии\n- **Топ-3 сомнения прямо сейчас:**  \n- **Что точно сломает сделку:**  \n\n---\n\n## 🌍 Гражданство / Гео\n- **Откуда родом:**  \n- **Где сейчас живёт:**  \n- **Увлечения и хобби:**  \n\n---\n\n## 💼 Работа / Доход\n- **Чем занимается (должность / сфера):**  \n- **Ориентировочная зарплата или доход:**  \n- **Какие планы:**  \n\n---\n\n## 💰 Опыт в крипте\n- **Сколько лет в теме:**  \n- **Сколько слил (ориентир):**  \n- **Примерные депозиты (диапазон):**  \n- **Какие курсы проходил:**  \n- **Какие биржи / платформы использовал:**  \n- **Активные аккаунты сейчас:**  \n\n---\n\n## 🪙 Финансовые возможности\n- **Реально готов внести сейчас (сумма):**  \n- **Кредиты / долги:**  \n\n---\n\n## ⚡ Боли и проблемы\n- **Финансовые трудности (з/п, долги, нестабильность):**  \n- **Страхи в крипте (слить, мошенники, “не разберусь”):**  \n- **Нехватка времени / давление семьи / прошлые неудачи:**  \n\n---\n\n## 🎯 Мотивация и отношение к риску\n- **Цель (быстрые деньги / стабильный доход / подушка / свобода):**  \n- **Реакция на риски и потери (спокойно / нервничает / паника):**\n```\n\n### 🔍 Важные указания\n\n- Не выдумывайте информацию.  \n- Не анализируйте стиль менеджера — только содержательные факты о лиде.  \n- Если данные противоречат друг другу — оставляйте более позднюю версию (по `created_at`).  \n- Все формулировки делайте профессиональными, спокойными, без оценочных слов.  \n- Финальный JSON должен содержать единственный объект с готовой связной заметкой.\n\n### 💾 Формат вывода\nВыведите результат в JSON:\n\n```json\n{\n  \"notes_full\": {\n    \"title\": \"Полная сегментация (финальная заметка)\",\n    \"content\": \"Заполненный Markdown с реальными данными из диалога\"\n  }\n}\n\n### 💾 Входной JSON с комментариями\n```\n{{ $('Aggregate').item.json.comments.toJsonString() }}\n```",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1008,
+        32
+      ],
+      "id": "6230eb40-e674-4a45-a0c2-0e2e485614b5",
+      "name": "Extract data from all the comments",
+      "retryOnFail": true,
+      "maxTries": 2
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed Master').first().json.manager.id }}",
+        "text": "=`{{ $json.text }}`",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "MarkdownV2"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1584,
+        144
+      ],
+      "id": "1b218f29-da43-419d-93e0-a279cc4523cc",
+      "name": "Send message: full segmentation",
+      "webhookId": "15b4ba02-381e-4bc0-9454-c3f3e26fa15b",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "comments",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        560,
+        288
+      ],
+      "id": "700b8c83-785f-46ec-acac-96b3e20667b1",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ada-sale.online/index.php/api/lead-notes",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authtoken",
+              "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJ1c2VyIjoic2VjdXNweWNvZGVAZ21haWwuY29tIiwibmFtZSI6IlZsYWRpbWlyIiwiQVBJX1RJTUUiOjE3NTUxODI4NTB9.0ulouSbP4bfsxFL8RsSYkg_BxdAIHCT744VE738_eakUWBvjD-9_xme5H8wG0574CA6NN3HrdAYR-CiQUWQGxg"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "client_id",
+              "value": "={{ $('CRM: Get lead from').first().json.id.toNumber() }}"
+            },
+            {
+              "name": "title",
+              "value": "=[AI] {{ $('Extract data from all the comments').first().json.output.notes_full.title }}"
+            },
+            {
+              "name": "description",
+              "value": "={{ $('Extract data from all the comments').first().json.output.notes_full.content }}"
+            },
+            {
+              "name": "color",
+              "value": "#83c340"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2032,
+        144
+      ],
+      "id": "f82628c7-1b88-4f8e-b6c7-148e61c8be4c",
+      "name": "CRM: create a full note"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed Master').first().json.manager.id}}",
+        "text": "=✅ Успешно: комментарий с полной сегментацией теперь в CRM!",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2480,
+        144
+      ],
+      "id": "03918954-c580-44fa-a2f8-547e5f8893b4",
+      "name": "Send text: full comment created",
+      "webhookId": "15b4ba02-381e-4bc0-9454-c3f3e26fa15b",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = Array.from($('CRM: get leads').all().values());\n\nconst tgUserIdToFind = $('When Executed Master').first().json.telegram.message.text\n\nconst result = data.find(item => {\n  const tgId = item.json.tg_user_id;\n  const deleted = item.json.deleted;\n  return tgId != null && String(tgId) === String(tgUserIdToFind) && deleted === \"0\";\n});\n\nreturn result ? [{ json: result.json }] : [];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1008,
+        288
+      ],
+      "id": "4ee982ea-c5a5-4586-8f8d-e931050954c1",
+      "name": "CRM: Get lead from"
+    },
+    {
+      "parameters": {
+        "url": "https://ada-sale.online/index.php/api/leads",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authtoken",
+              "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJ1c2VyIjoic2VjdXNweWNvZGVAZ21haWwuY29tIiwibmFtZSI6IlZsYWRpbWlyIiwiQVBJX1RJTUUiOjE3NTUxODI4NTB9.0ulouSbP4bfsxFL8RsSYkg_BxdAIHCT744VE738_eakUWBvjD-9_xme5H8wG0574CA6NN3HrdAYR-CiQUWQGxg"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1232,
+        288
+      ],
+      "id": "b512194c-9596-4ee6-a135-58bb5477e093",
+      "name": "CRM: get leads"
+    },
+    {
+      "parameters": {
+        "url": "=https://ada-sale.online/index.php/api/lead-notes?client_id={{ $json.id.toNumber() }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authtoken",
+              "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJ1c2VyIjoic2VjdXNweWNvZGVAZ21haWwuY29tIiwibmFtZSI6IlZsYWRpbWlyIiwiQVBJX1RJTUUiOjE3NTUxODI4NTB9.0ulouSbP4bfsxFL8RsSYkg_BxdAIHCT744VE738_eakUWBvjD-9_xme5H8wG0574CA6NN3HrdAYR-CiQUWQGxg"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -784,
+        288
+      ],
+      "id": "d3f5a6e6-bb4a-4557-ab59-8470a9c62b75",
+      "name": "CRM: get lead comments",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "DELETE",
+        "url": "=https://ada-sale.online/index.php/api/lead-notes/{{ $json.id.toNumber() }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authtoken",
+              "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJ1c2VyIjoic2VjdXNweWNvZGVAZ21haWwuY29tIiwibmFtZSI6IlZsYWRpbWlyIiwiQVBJX1RJTUUiOjE3NTUxODI4NTB9.0ulouSbP4bfsxFL8RsSYkg_BxdAIHCT744VE738_eakUWBvjD-9_xme5H8wG0574CA6NN3HrdAYR-CiQUWQGxg"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -112,
+        368
+      ],
+      "id": "bdf617f7-52cb-4dde-bc53-db843b24caef",
+      "name": "CRM: delete existed lead comment"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        112,
+        368
+      ],
+      "id": "e8351c1f-be60-4465-a1fd-08c4035df612",
+      "name": "Agregate to one"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = Array.from($('CRM: get lead comments').all().values());\n\nconst results = data.filter(item => {\n    return item.json.title === \"[AI] Полная сегментация (финальная заметка)\" \n        && item.json.deleted === \"0\";\n});\n\nreturn results.map(item => ({ json: item.json }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -560,
+        288
+      ],
+      "id": "a56100d5-f9b6-460a-b117-b572aac93233",
+      "name": "CRM: return full segmentation comments",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "50585a47-30b3-4246-8bea-0f0df88465cf",
+              "leftValue": "={{$('CRM: return full segmentation comments').item.json.isEmpty()}}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -336,
+        288
+      ],
+      "id": "510da02f-e1c4-4074-b3f8-85967373836e",
+      "name": "If full comment does not exist"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "607e5ec1-3aa7-4fa8-b44b-53ab1e3a8a71",
+              "leftValue": "={{ ($json.comments.first().isEmpty()) && ($json.comments.length === 1) }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        784,
+        288
+      ],
+      "id": "cbeece0f-ae0a-4f18-9ac6-b743981b7f27",
+      "name": "If comments exist"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1008,
+        272
+      ],
+      "id": "d7185068-bad6-4af3-b54e-155a0adad3cb",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "z8LhRApcZARmCIAX",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When Executed Master": {
+      "main": [
+        [
+          {
+            "node": "Send text: wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Extract data from all the comments",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update state: reset": {
+      "main": [
+        [
+          {
+            "node": "Send text: full comment created",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chunk tg message": {
+      "main": [
+        [
+          {
+            "node": "Send message: full segmentation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate - just to make 1 step": {
+      "main": [
+        [
+          {
+            "node": "CRM: create a full note",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send text: wait": {
+      "main": [
+        [
+          {
+            "node": "CRM: get leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute \"find lead comments\"": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract data from all the comments": {
+      "main": [
+        [
+          {
+            "node": "Chunk tg message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message: full segmentation": {
+      "main": [
+        [
+          {
+            "node": "Aggregate - just to make 1 step",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "If comments exist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM: create a full note": {
+      "main": [
+        [
+          {
+            "node": "Update state: reset",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM: Get lead from": {
+      "main": [
+        [
+          {
+            "node": "CRM: get lead comments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM: get leads": {
+      "main": [
+        [
+          {
+            "node": "CRM: Get lead from",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM: get lead comments": {
+      "main": [
+        [
+          {
+            "node": "CRM: return full segmentation comments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM: delete existed lead comment": {
+      "main": [
+        [
+          {
+            "node": "Agregate to one",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM: return full segmentation comments": {
+      "main": [
+        [
+          {
+            "node": "If full comment does not exist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If full comment does not exist": {
+      "main": [
+        [
+          {
+            "node": "Execute \"find lead comments\"",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "CRM: delete existed lead comment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregate to one": {
+      "main": [
+        [
+          {
+            "node": "Execute \"find lead comments\"",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If comments exist": {
+      "main": [
+        [
+          {
+            "node": "Extract data from all the comments",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send text: error in send code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Extract data from all the comments",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "When Executed Master": [
+      {
+        "json": {
+          "manager": {
+            "id": 8203479406,
+            "created_at": "2025-08-29T17:00:31.033459+00:00",
+            "updated_at": "2025-08-29T17:00:31.033459",
+            "tg_username": "amina_red",
+            "first_name": "Амина",
+            "last_name": null,
+            "role": "manager",
+            "status": "active",
+            "api_id": 26502193,
+            "api_hash": "841f2564dd4b3f62b440372b906374d4",
+            "string_session": "1ApWapzMBu8EGjJ4C-B_glbIOlemNqzMShYcmxVbJC9htojZU9wqSr_bTAZGC06ToS0bjl1OZMWjI8lnlzdpNnjQVj-7K0qKw3SCukcnUgcuJvOAEyMLKN1LzDnasQElngOOFNzBPK8DYJrWIayK8JlCrC2-b-So1bfR3n6SQcK-lOC38DyBqXmR8a1O0hxNQbN0sHa7rlGvbRGSZUH4TzqQ6-K-fUJChNKQD0DqE_dNBf6pr4WXaknHn9_wSvjVpEGzDnwaYgc7u8nmU2MQYPLlDIl72FVxcPyhLUUALoksCpZzgzQRO4RLMmOlaHN1saOyXBf_a0U6W4quBhJ3Bx4mPoOpF2NU=",
+            "phone": "+380630282951",
+            "proxy_ip": "5.22.204.236",
+            "proxy_port": 59100,
+            "proxy_login": "dabstep4enko",
+            "proxy_password": "FjGhduJaEN",
+            "state": "add_full_segmentation_comment__enter",
+            "last_tg_api_call_at": null,
+            "state_data": null
+          },
+          "telegram": {
+            "update_id": 502824313,
+            "message": {
+              "message_id": 5092,
+              "from": {
+                "id": 8203479406,
+                "is_bot": false,
+                "first_name": "Амина",
+                "username": "amina_red",
+                "language_code": "en",
+                "is_premium": true
+              },
+              "chat": {
+                "id": 8203479406,
+                "first_name": "Амина",
+                "username": "amina_red",
+                "type": "private"
+              },
+              "date": 1760113724,
+              "text": "7613522292"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "versionId": "6cc55815-cc35-4493-bf6c-788a7bd9c3c3",
+  "activeVersionId": "6cc55815-cc35-4493-bf6c-788a7bd9c3c3",
+  "versionCounter": 3,
+  "triggerCount": 0,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2025-10-10T12:09:14.756Z",
+      "createdAt": "2025-10-10T12:09:14.756Z",
+      "role": "workflow:owner",
+      "workflowId": "IgLOjU80jZrtlxUQ",
+      "projectId": "otThis0Dzllfqt7v",
+      "project": {
+        "updatedAt": "2025-08-20T18:30:26.018Z",
+        "createdAt": "2025-08-20T18:23:04.813Z",
+        "id": "otThis0Dzllfqt7v",
+        "name": "Ada Sales <dragmastery@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "b0f4cf25-2d4a-4614-b225-fe05addaa1fc"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

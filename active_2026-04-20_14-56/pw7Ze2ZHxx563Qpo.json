@@ -1,0 +1,1076 @@
+{
+  "updatedAt": "2026-04-20T10:38:38.493Z",
+  "createdAt": "2025-08-31T16:05:37.568Z",
+  "id": "pw7Ze2ZHxx563Qpo",
+  "name": "Lead: create card to CRM using AI",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed Master').item.json.manager.id }}",
+        "text": "=❌ Ошибка",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -8368,
+        496
+      ],
+      "id": "bf388e0d-217e-43d5-922a-c946646f2919",
+      "name": "Send text: error in send code",
+      "webhookId": "15b4ba02-381e-4bc0-9454-c3f3e26fa15b",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "manager",
+              "type": "object"
+            },
+            {
+              "name": "telegram",
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -9328,
+        352
+      ],
+      "id": "a2fbcc8f-f8df-4452-a8ea-6c168ad30d8d",
+      "name": "When Executed Master"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"$schema\": \"http://json-schema.org/draft-07/schema#\",\n  \"title\": \"LeadInfo\",\n  \"type\": \"object\",\n  \"properties\": {\n    \"city\": {\n      \"type\": [\"string\", \"null\"],\n      \"description\": \"Название города или null, если не указано\"\n    },\n    \"country\": {\n      \"type\": [\"string\", \"null\"],\n      \"description\": \"Название страны или null, если не указано\"\n    },\n    \"citizenship\": {\n      \"type\": [\"string\", \"null\"],\n      \"description\": \"Название гражданства или null, если не указано\"\n    },\n    \"financial_summary\": {\n      \"type\": \"string\",\n      \"description\": \"Краткое описание платёжеспособности лида на русском языке\"\n    },\n    \"crypto_level\": {\n      \"type\": [\"string\", \"null\"],\n      \"enum\": [\"Новичок\", \"Криптан\", \"КИТ\"],\n      \"description\": \"Уровень опыта и возможностей лида в крипте\"\n    },\n    \"notes_base\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"title\": { \"type\": \"string\", \"description\": \"Заголовок Markdown блока базовой сегментации\" },\n        \"content\": { \"type\": \"string\", \"description\": \"Содержимое Markdown блока базовой сегментации\" }\n      },\n      \"required\": [\"title\", \"content\"]\n    }\n  },\n  \"required\": [\"city\", \"country\", \"citizenship\", \"financial_summary\", \"crypto_level\", \"notes_base\"],\n  \"additionalProperties\": false\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -8304,
+        320
+      ],
+      "id": "2d28953f-8fc4-4bf1-af3b-ccaa36c966db",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://148.230.104.29:8000/export_chat_transcribed_inline",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "account_id",
+              "value": "={{ $('When Executed Master').item.json.manager.id }}"
+            },
+            {
+              "name": "user_id",
+              "value": "={{ $('Get stateData').item.json.stateData.create_lead.user_id }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 600000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -8656,
+        352
+      ],
+      "id": "99de9ced-24e3-42ec-b7b7-15340e1109c4",
+      "name": "TR accounts api: export chat",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "m7RprwkaG3kF5L6E",
+          "name": "Auth Token for tg_account_api script"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, title FROM mb592658_adadb.rise_lead_source;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        -7408,
+        208
+      ],
+      "id": "055c2c13-0c64-4642-8c20-28d13ec1ce48",
+      "name": "Get sources",
+      "credentials": {
+        "mySql": {
+          "id": "hWvHOF51fBsx3NA3",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const state_data = $('When Executed Master').first().json.manager.state_data;\nconst json = JSON.parse(state_data);\nreturn {\"json\": {\"stateData\": json}}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -8880,
+        352
+      ],
+      "id": "d74b746e-8a96-4634-b50a-d3fb003503d0",
+      "name": "Get stateData"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are analyzing a conversation between a manager (role: manager) and a potential client (role: lead) stored in JSON with fields `type`, `id`, `date`, `from_id`, `sender_role` (\"manager\" or \"lead\"), `text` or `transcript` for voice messages.\n\nYour tasks:\n\n1. Extract all important information about the lead: city, country, citizenship.\n2. Determine crypto_level (\"Новичок\", \"Криптан\", \"КИТ\").\n3. Structure info in a note: notes_basel using Markdown. If any value is missing, put \"-\".\n\nMarkdown template:\n\n\"\"\"\n# AI Базовая сегментация (первичные заметки)\n\n## Гражданство / Гео\n- **Откуда родом:** -\n- **Где сейчас живёт:** -\n\n## Увлечения / Хобби\n- **Интересы и хобби:** -\n\n## Работа / Доход\n- **Чем занимается (должность / сфера):** -\n- **Ориентировочная зарплата / доход:** -\n- **Планы / цели:** -\n\"\"\"\n\nAll textual values must be in Russian. Output JSON format:\n\n```json\n{\n  \"city\": null,\n  \"country\": null,\n  \"citizenship\": null,\n  \"financial_summary\": \"-\",\n  \"crypto_level\": \"-\",\n  \"notes_base\": { \"title\": \"Базовая сегментация (первичные заметки)\", \"content\": \"-\" }\n}\n```\n\nInput to process: `{{ $('TR accounts api: export chat').first().json.toJsonString() }}`\n",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -8432,
+        96
+      ],
+      "id": "a6ddd018-f72d-41d0-92a6-26c47c1607d5",
+      "name": "Extract data from chat",
+      "retryOnFail": true,
+      "maxTries": 2
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "tg_leads",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "user_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Get stateData').first().json.stateData.create_lead.user_id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "folder",
+              "fieldValue": "=Segmentation"
+            },
+            {
+              "fieldId": "chat_history",
+              "fieldValue": "={{ $('TR accounts api: export chat').first().json }}"
+            },
+            {
+              "fieldId": "source",
+              "fieldValue": "={{ $('Get lead source').first().json.source_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -5392,
+        208
+      ],
+      "id": "a1b306f4-afbc-4072-91f6-3a8b6e84ee2c",
+      "name": "Update lead",
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "tg_accounts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('When Executed Master').first().json.manager.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "state",
+              "fieldValue": "={{ null }}"
+            },
+            {
+              "fieldId": "state_data",
+              "fieldValue": "={{ null }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -5168,
+        208
+      ],
+      "id": "78b0fd0e-f459-4615-b43b-d104a216a633",
+      "name": "Update state: reset",
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const dataJson = $(\"Get sources\").all().map(item => item.json);\nconst source_title = $('Get stateData').first().json.stateData.create_lead.source\nconst source_id = dataJson.find(obj => obj.title === source_title)?.id;\n\nreturn {\n  'json': {\n    \"source_id\": source_id,\n    \"source_title\": source_title,\n  }\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -7184,
+        208
+      ],
+      "id": "f3487571-c957-46ca-9ce9-4ffc8bc7b4d0",
+      "name": "Get lead source"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://148.230.104.29:8000/move_chat_to_folder",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "account_id",
+              "value": "={{ $('When Executed Master').first().json.manager.id }}"
+            },
+            {
+              "name": "user_id",
+              "value": "={{ $('Get stateData').first().json.stateData.create_lead.user_id }}"
+            },
+            {
+              "name": "folder",
+              "value": "Сегментация"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -6512,
+        208
+      ],
+      "id": "671cb0eb-0598-4b4a-bc08-2104ac4d483f",
+      "name": "TR accounts api: move to segmentation",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "m7RprwkaG3kF5L6E",
+          "name": "Auth Token for tg_account_api script"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed Master').first().json.manager.id}}",
+        "text": "=Карточка лида `{{ $('Update lead').item.json.full_name }}` (id=`{{ $('Update lead').item.json.user_id }}`) успешно создана в CRM! \n",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -4944,
+        208
+      ],
+      "id": "c3fcefd2-7787-478c-a65c-f02b45ce52ae",
+      "name": "Send text: lead card created",
+      "webhookId": "15b4ba02-381e-4bc0-9454-c3f3e26fa15b",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ada-sale.online/index.php/api/leads",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authtoken",
+              "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJ1c2VyIjoic2VjdXNweWNvZGVAZ21haWwuY29tIiwibmFtZSI6IlZsYWRpbWlyIiwiQVBJX1RJTUUiOjE3NTUxODI4NTB9.0ulouSbP4bfsxFL8RsSYkg_BxdAIHCT744VE738_eakUWBvjD-9_xme5H8wG0574CA6NN3HrdAYR-CiQUWQGxg"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "company_name",
+              "value": "={{ $json.moved_user.first_name }} {{ $json.moved_user.last_name }}"
+            },
+            {
+              "name": "owner_id",
+              "value": "={{ $('CRM: Get manager from').item.json.id }}"
+            },
+            {
+              "name": "lead_status_id",
+              "value": "3"
+            },
+            {
+              "name": "lead_source_id",
+              "value": "={{ $('Get lead source').first().json.source_id }}"
+            },
+            {
+              "name": "country",
+              "value": "={{ $('Extract data from chat').first().json.output.country }}"
+            },
+            {
+              "name": "city",
+              "value": "={{ $('Extract data from chat').first().json.output.city }}"
+            },
+            {
+              "name": "tg_user_id",
+              "value": "={{ $('Get stateData').first().json.stateData.create_lead.user_id }}"
+            },
+            {
+              "name": "cityzenship",
+              "value": "={{ $('Extract data from chat').first().json.output.citizenship }}"
+            },
+            {
+              "name": "custom_field_23",
+              "value": "={{ $('Extract data from chat').first().json.output.crypto_level }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -6288,
+        208
+      ],
+      "id": "8df6b471-006f-4d8a-b8f1-b47d068b9c09",
+      "name": "CRM: create a new lead"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed Master').first().json.manager.id}}",
+        "text": "=Карточка лида создаётся... Подождите...",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -9104,
+        352
+      ],
+      "id": "6e7e722b-8cfa-4f9e-8f5b-50ee6745a8bb",
+      "name": "Send text: lead card created1",
+      "webhookId": "15b4ba02-381e-4bc0-9454-c3f3e26fa15b",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed Master').item.json.manager.id }}",
+        "text": "=`{{ $json.text }}`",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "MarkdownV2"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -7856,
+        208
+      ],
+      "id": "cd84b727-af97-43b9-b729-c2827edf86ce",
+      "name": "Send summary",
+      "webhookId": "15b4ba02-381e-4bc0-9454-c3f3e26fa15b",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://ada-sale.online/index.php/api/team-members/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authtoken",
+              "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJ1c2VyIjoic2VjdXNweWNvZGVAZ21haWwuY29tIiwibmFtZSI6IlZsYWRpbWlyIiwiQVBJX1RJTUUiOjE3NTUxODI4NTB9.0ulouSbP4bfsxFL8RsSYkg_BxdAIHCT744VE738_eakUWBvjD-9_xme5H8wG0574CA6NN3HrdAYR-CiQUWQGxg"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -6960,
+        208
+      ],
+      "id": "2a80b134-87b1-4102-88a9-69543d2f0d3f",
+      "name": "CRM: get team members"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = Array.from($('CRM: get team members').all().values());\nconst tgUserIdToFind = $('Get stateData').first().json.stateData.create_lead.db_row.added_by\n\nconst result = data.find(item => {\n  const tgId = item.json.tg_user_id;\n  const deleted = item.json.deleted;\n  return tgId != null && String(tgId) === String(tgUserIdToFind) && deleted === \"0\";\n});\n\nreturn result ? [{ json: result.json }] : [];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -6736,
+        208
+      ],
+      "id": "6b800c34-6307-4a5e-8317-b5fb8a48416c",
+      "name": "CRM: Get manager from",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ada-sale.online/index.php/api/lead-notes",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authtoken",
+              "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJ1c2VyIjoic2VjdXNweWNvZGVAZ21haWwuY29tIiwibmFtZSI6IlZsYWRpbWlyIiwiQVBJX1RJTUUiOjE3NTUxODI4NTB9.0ulouSbP4bfsxFL8RsSYkg_BxdAIHCT744VE738_eakUWBvjD-9_xme5H8wG0574CA6NN3HrdAYR-CiQUWQGxg"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "client_id",
+              "value": "={{ $('CRM: Get lead from').item.json.id }}"
+            },
+            {
+              "name": "title",
+              "value": "=[AI] {{ $('Extract data from chat').first().json.output.notes_base.title }}"
+            },
+            {
+              "name": "description",
+              "value": "={{ $('Extract data from chat').first().json.output.notes_base.content }}"
+            },
+            {
+              "name": "color",
+              "value": "#f1c40f"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -5616,
+        208
+      ],
+      "id": "826b06d2-0c13-4c47-9ab8-acf5c7b768ef",
+      "name": "CRM: create a base note"
+    },
+    {
+      "parameters": {
+        "url": "https://ada-sale.online/index.php/api/leads",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authtoken",
+              "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJ1c2VyIjoic2VjdXNweWNvZGVAZ21haWwuY29tIiwibmFtZSI6IlZsYWRpbWlyIiwiQVBJX1RJTUUiOjE3NTUxODI4NTB9.0ulouSbP4bfsxFL8RsSYkg_BxdAIHCT744VE738_eakUWBvjD-9_xme5H8wG0574CA6NN3HrdAYR-CiQUWQGxg"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -6064,
+        208
+      ],
+      "id": "f3951608-ea4b-46c4-9f32-15097dcdddd7",
+      "name": "CRM: get leads"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = Array.from($('CRM: get leads').all().values());\n\nconst tgUserIdToFind = $('Get stateData').first().json.stateData.create_lead.user_id\n\nconst result = data.find(item => {\n  const tgId = item.json.tg_user_id;\n  const deleted = item.json.deleted;\n  return tgId != null && String(tgId) === String(tgUserIdToFind) && deleted === \"0\";\n});\n\nreturn result ? [{ json: result.json }] : [];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5840,
+        208
+      ],
+      "id": "0d718da8-4064-48b5-8ffd-9feb8d73151e",
+      "name": "CRM: Get lead from"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT options FROM mb592658_adadb.rise_custom_fields WHERE id = 19;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        -4720,
+        208
+      ],
+      "id": "33ef6fb1-9c8f-4d7c-ad36-a57ca8a17432",
+      "name": "Get manager options",
+      "credentials": {
+        "mySql": {
+          "id": "hWvHOF51fBsx3NA3",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed Master').first().json.manager.id}}",
+        "text": "=Назначьте менеджера или менеджеров.  \nСписок доступных: {{ $json.options }}  \n\nНапишите через запятую, например: \"Анна, Аня\"",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -4496,
+        208
+      ],
+      "id": "bac60b76-7615-4d3e-9985-614ab36b3ed7",
+      "name": "Send text: to set manager",
+      "webhookId": "15b4ba02-381e-4bc0-9454-c3f3e26fa15b",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "tg_accounts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('When Executed Master').first().json.manager.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "state",
+              "fieldValue": "update_lead__choose_managers"
+            },
+            {
+              "fieldId": "state_data",
+              "fieldValue": "={\n  \"update_lead\": {\n    \"lead_id\": {{ $('CRM: Get lead from').item.json.id }},\n    \"tg_user\": {{ $('Get stateData').first().json.stateData.create_lead.db_row.toJsonString() }}\n  }\n}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -4272,
+        208
+      ],
+      "id": "a6383523-a521-4d47-91c6-5624a48c9064",
+      "name": "Update state: update_lead__choose_managers",
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Maximum length for each Telegram message (keeping a small buffer for MarkdownV2)\nconst maxLength = 4000;\n\n// Build the full message from extracted fields\nconst text = `\nInfo from chat:\nCity: ${$('Extract data from chat').first().json.output.city}\nCountry: ${$('Extract data from chat').first().json.output.country}\nCitizenship: ${$('Extract data from chat').first().json.output.citizenship}\nCrypto level: ${$('Extract data from chat').first().json.output.crypto_level}\n\n---\n${$('Extract data from chat').first().json.output.notes_base.content}\n`;\n\n// Function to split a string into smaller chunks\nfunction chunkString(str, length) {\n  const result = [];\n  let i = 0;\n  while (i < str.length) {\n    result.push(str.slice(i, i + length));\n    i += length;\n  }\n  return result;\n}\n\n// Return an array of objects, each will become one Telegram message\nreturn chunkString(text, maxLength).map(t => ({ json: { text: t } }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -8080,
+        208
+      ],
+      "id": "a51c6670-ec84-4ce1-bb19-3f05cda053dc",
+      "name": "Chunk tg message"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -7632,
+        208
+      ],
+      "id": "c6dc4b05-263f-4047-b1e8-273f86a7bb45",
+      "name": "Aggregate - just to make 1 step"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -8464,
+        320
+      ],
+      "id": "edf0254b-2ecf-420c-b08a-6d3b9f39352a",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "z8LhRApcZARmCIAX",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When Executed Master": {
+      "main": [
+        [
+          {
+            "node": "Send text: lead card created1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Extract data from chat",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TR accounts api: export chat": {
+      "main": [
+        [
+          {
+            "node": "Extract data from chat",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send text: error in send code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get sources": {
+      "main": [
+        [
+          {
+            "node": "Get lead source",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get stateData": {
+      "main": [
+        [
+          {
+            "node": "TR accounts api: export chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract data from chat": {
+      "main": [
+        [
+          {
+            "node": "Chunk tg message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update lead": {
+      "main": [
+        [
+          {
+            "node": "Update state: reset",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update state: reset": {
+      "main": [
+        [
+          {
+            "node": "Send text: lead card created",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get lead source": {
+      "main": [
+        [
+          {
+            "node": "CRM: get team members",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TR accounts api: move to segmentation": {
+      "main": [
+        [
+          {
+            "node": "CRM: create a new lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send text: lead card created": {
+      "main": [
+        [
+          {
+            "node": "Get manager options",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM: create a new lead": {
+      "main": [
+        [
+          {
+            "node": "CRM: get leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send text: lead card created1": {
+      "main": [
+        [
+          {
+            "node": "Get stateData",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send summary": {
+      "main": [
+        [
+          {
+            "node": "Aggregate - just to make 1 step",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM: get team members": {
+      "main": [
+        [
+          {
+            "node": "CRM: Get manager from",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM: Get manager from": {
+      "main": [
+        [
+          {
+            "node": "TR accounts api: move to segmentation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM: create a base note": {
+      "main": [
+        [
+          {
+            "node": "Update lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM: get leads": {
+      "main": [
+        [
+          {
+            "node": "CRM: Get lead from",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM: Get lead from": {
+      "main": [
+        [
+          {
+            "node": "CRM: create a base note",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get manager options": {
+      "main": [
+        [
+          {
+            "node": "Send text: to set manager",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send text: to set manager": {
+      "main": [
+        [
+          {
+            "node": "Update state: update_lead__choose_managers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chunk tg message": {
+      "main": [
+        [
+          {
+            "node": "Send summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate - just to make 1 step": {
+      "main": [
+        [
+          {
+            "node": "Get sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Extract data from chat",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "When Executed Master": [
+      {
+        "json": {
+          "manager": {
+            "id": 8203479406,
+            "created_at": "2025-08-29T17:00:31.033459+00:00",
+            "updated_at": "2025-08-29T17:00:31.033459",
+            "tg_username": "amina_red",
+            "first_name": "Амина",
+            "last_name": null,
+            "role": "manager",
+            "status": "active",
+            "api_id": 26502193,
+            "api_hash": "841f2564dd4b3f62b440372b906374d4",
+            "string_session": "1ApWapzMBu8EGjJ4C-B_glbIOlemNqzMShYcmxVbJC9htojZU9wqSr_bTAZGC06ToS0bjl1OZMWjI8lnlzdpNnjQVj-7K0qKw3SCukcnUgcuJvOAEyMLKN1LzDnasQElngOOFNzBPK8DYJrWIayK8JlCrC2-b-So1bfR3n6SQcK-lOC38DyBqXmR8a1O0hxNQbN0sHa7rlGvbRGSZUH4TzqQ6-K-fUJChNKQD0DqE_dNBf6pr4WXaknHn9_wSvjVpEGzDnwaYgc7u8nmU2MQYPLlDIl72FVxcPyhLUUALoksCpZzgzQRO4RLMmOlaHN1saOyXBf_a0U6W4quBhJ3Bx4mPoOpF2NU=",
+            "phone": "+380630282951",
+            "proxy_ip": "5.22.204.236",
+            "proxy_port": 59100,
+            "proxy_login": "dabstep4enko",
+            "proxy_password": "FjGhduJaEN",
+            "state": "create_lead__saving",
+            "last_tg_api_call_at": null,
+            "state_data": "{\"create_lead\":{\"user_id\":338216406,\"db_row\":{\"user_id\":338216406,\"created_at\":\"2025-10-08T14:31:28.965252+00:00\",\"updated_at\":\"2025-10-08T14:31:28.965252+00:00\",\"first_name\":\"Саша\",\"last_name\":\"Громов\",\"username\":\"saha9406\",\"folder\":\"Segmentation\",\"chat_history\":{\"account_id\":8203479406,\"user_id\":338216406,\"messages\":[{\"type\":\"text\",\"id\":5681,\"date\":\"2025-09-16 14:59:12+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Приветик\"},{\"type\":\"text\",\"id\":5682,\"date\":\"2025-09-16 15:00:11+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Привет)\"},{\"type\":\"text\",\"id\":5683,\"date\":\"2025-09-16 15:00:18+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Как настроение твое ?)\"},{\"type\":\"text\",\"id\":5684,\"date\":\"2025-09-16 15:00:21+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Чем занимаешься ?)\"},{\"type\":\"text\",\"id\":5685,\"date\":\"2025-09-16 15:01:26+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"мне подруга дала твои контакты\"},{\"type\":\"text\",\"id\":5686,\"date\":\"2025-09-16 15:01:48+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"сказала что ты вроде норм парень, это правда?)\"},{\"type\":\"text\",\"id\":5687,\"date\":\"2025-09-16 15:01:57+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Да\"},{\"type\":\"text\",\"id\":5688,\"date\":\"2025-09-16 15:02:06+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я военный))\"},{\"type\":\"text\",\"id\":5693,\"date\":\"2025-09-16 15:13:03+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"я по фото поняла )\"},{\"type\":\"text\",\"id\":5694,\"date\":\"2025-09-16 15:13:16+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я постой парень\"},{\"type\":\"text\",\"id\":5695,\"date\":\"2025-09-16 15:13:22+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Без понтов\"},{\"type\":\"text\",\"id\":5696,\"date\":\"2025-09-16 15:13:32+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Не Курью\"},{\"type\":\"text\",\"id\":5697,\"date\":\"2025-09-16 15:13:35+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Не пью\"},{\"type\":\"text\",\"id\":5698,\"date\":\"2025-09-16 15:13:38+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Машини нету\"},{\"type\":\"text\",\"id\":5701,\"date\":\"2025-09-16 15:31:53+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"вот как нинче знакомиться\"},{\"type\":\"text\",\"id\":5714,\"date\":\"2025-09-16 16:36:53+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"?)\"},{\"type\":\"text\",\"id\":5715,\"date\":\"2025-09-16 16:37:03+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"По-разному знакомятся\"},{\"type\":\"voice\",\"duration\":145,\"mime_type\":\"audio/ogg\",\"transcript\":\"Так, ну давай я тебе запишу такое длинное голосовое о себе, потому что сейчас тоже между работой не всегда успеваю где-то поотвечать, позаходить на этот аккаунт. Блин, много кто пишет, и, в общем, не люблю вот эти, знаешь, короткие сообщения, лучше одно хорошее сообщение, содержательное и таким образом как-то двигаться. Вот. Я вообще такой человек, которому, ну, если брать по жизни, да, мне вот сложно сидеть на одном месте. Постоянно либо куда-то лечу, либо хотя бы на машине уезжаю в другой город, чтобы сменить обстановку. Вот. Из увлечений у меня спорт, в основном. Это большой теннис, зал, иногда стрельба из лука. Люблю экстремальные штуки. У меня парень тоже такой экстремал был. Я из тех, вообще, кто не может теперь жить без движения, если неделю ничего нового не попробую, чувствую, что застаиваюсь. В какой-то момент даже работала фитнес-тренером. Так что вот питание и спорт у меня прямо встроены в жизнь. Я часто сама вообще готовлю. Иногда выходит так, что мои блюда вкуснее ресторанных. Особенно завтраки люблю. Вот это вообще мой маленький ритуал радости такой. Э-э, вот. Считаю, что у каждого человека как-то должен быть какой-то такое видение своего идеального дня, как он себя представляет там через полгода свой лайфстайл. Вот. У меня, допустим, я это вижу как: я просыпаюсь не по будильнику, желательно от солнца, да, или от каких-то, так скажем, проявлений природы, да. Э-э, и лёгкая пробежка, вот зал, желательно до 9 часов это всё сделать утра. Потом вкусный завтрак, там кофе. А-а, днём работы, проекты, а вечером вообще обязательно что-то для души. Вот. Потому что у меня днём очень много ещё семейных там обязательств. Короче, потом расскажу. Блин, никуда я не могу уйти, к сожалению. Вот. А вечером такой: прогулка, романтика, концерт. Я вообще верю, что вот кайф от жизни складывается из таких вот мелочей. Вот. Так, ну ладно, всё, хватит про меня. Теперь твоя очередь. Расскажи вот о себе в таком же формате, какие у тебя увлечения, чем вообще дышишь, как твой идеальный день выглядит. Вот.\",\"id\":5784,\"date\":\"2025-09-16 21:34:28+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\"},{\"type\":\"voice\",\"duration\":168,\"mime_type\":\"audio/ogg\",\"transcript\":\"А, касательно моего рода деятельности, вообще, я в активном поиске. Вот куда можно было бы инвестировать нормально деньги. Был вообще разный у меня опыт в разных сферах. Хотя я обычная студентка, так, если посудить, но у моего отца очень много связей. Я помогала делать там видео, фото, контент, его знакомым, так скажем, бизнесы развивать. У него много здесь приятелей. Вот со своими тоже оффлайн какими-то бизнесами. Вот у моего отца даже зал был, я, получается, и там фитнес-тренером подрабатывала и делала контент под это всё. Вот. Но я поняла, что это слишком не моё, потому что вот, блин, мне сейчас вот на пассиве капает какая-то сумма, да, каждый месяц. И я просто поняла, что такое инвестиции. По сути ты тратишь, а, n-ное количество денег, да, ждёшь год, два, три, и потом получаешь все эти дивиденды вдвойне. Это если говорить, вот, о каких-то хороших инвестициях. Я, допустим, в салон подруги инвестировала, она этим горит, занимается. И мне просто капает денежка. Вот я могу себе позволить не работать. Короче, меня, ну, в принципе, интересуют какие-то такие сферы, вот, где не нужно быть заложницей этой всей оффлайн движухи, беготни, вот этого общения с людьми постоянного. Вот мне это не интересно. Мне интересно что-то онлайн, или какие-то вот тоже бизнесы, которые классно функционируют, можно в них что-то закинуть. Вот мне абсолютно не нравится работать, м, как бы с людьми, вот именно. Мне нравится отдыхать с людьми, вот. Но, как бы, знаешь, тоже, с родственниками я не могу сейчас всё это разорвать, эти все обязательства. Да и это неправильно. Вот. И сейчас, короче, мне приходится для себя осваивать новую тоже, э, такую, можно сказать, сферу, очень сложную. И пока что я планирую, вот, э, в этом, как бы, время проводить, вот, большую часть своей жизни, да, то есть сейчас в это посвящаю. Потому что я уверена, что получится. Вот уже вижу нехиловый такой результат. Вот. Но, не знаю, может быть, потом расскажу. Это, ну, в принципе, это не важно, чем человек занимается. Вот важно, на что он тратит, знаешь, 80% времени. Да, это важно. Ты расскажи, чем вообще ты, как бы, занимаешься, с чем работаешь. что? Потому что, вот, не знаю, для меня такие моменты на берегу вот важны. И вот, мне там не важно, сколько-то там у тебя заработок, там сумма. Мне главное, чтобы это было, а, как сказать, не деградация. Вот, понимаешь?\",\"id\":5785,\"date\":\"2025-09-16 21:34:53+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\"},{\"type\":\"text\",\"id\":5804,\"date\":\"2025-09-17 05:13:39+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Добро утро))\"},{\"type\":\"text\",\"id\":5805,\"date\":\"2025-09-17 05:14:00+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Выйду с Електрик  все розкажу о себе))\"},{\"type\":\"text\",\"id\":5806,\"date\":\"2025-09-17 06:17:56+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Мне все так интересно было слушать чем ты по жизни занимаешься)))\"},{\"type\":\"text\",\"id\":5807,\"date\":\"2025-09-17 06:18:24+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я тоже хочу монеты кинуть в обороты  но не знаю еще куда.\"},{\"type\":\"text\",\"id\":5808,\"date\":\"2025-09-17 06:18:41+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Думал битки но я не розбираюсь\"},{\"type\":\"text\",\"id\":5809,\"date\":\"2025-09-17 06:18:52+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я тоже люблю спор\"},{\"type\":\"text\",\"id\":5810,\"date\":\"2025-09-17 06:19:47+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я все децтво поро занимался. Футбол карате боокс ММА. Всего дальше по тихонько занимался )\"},{\"type\":\"text\",\"id\":5811,\"date\":\"2025-09-17 06:20:52+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Александр 27  187. рост 100 Важу\"},{\"type\":\"text\",\"id\":5812,\"date\":\"2025-09-17 06:21:35+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Люблю на велике катать очень далеко ) резкие потишестивя по Украине не только)\"},{\"type\":\"text\",\"id\":5813,\"date\":\"2025-09-17 06:25:46+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Люблю собак )\"},{\"type\":\"voice\",\"duration\":28,\"mime_type\":\"audio/ogg\",\"transcript\":\"Да, кстати, по поводу того, что ты рассказывала, куда монету можно влаживать. Я давно этим интересовался и не знаю куда влаживать. Я тоже люблю пассивный доход, я им интересовался, но у меня что-то не получалось этим найти, куда и вложить. Если знаешь ты куда, дальше будет интересно. Так и дальше этим заниматься.\",\"id\":5815,\"date\":\"2025-09-17 07:24:50+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\"},{\"type\":\"voice\",\"duration\":76,\"mime_type\":\"audio/ogg\",\"transcript\":\"Кстати, я ещё люблю оружие, рыбалку люблю, охоту люблю. И проводить когда-то время на выходных куда-то выезжать на природу, там ещё на дачу куда-то. На вельчиках погасать, на квадрику. шашлычки-башлычки такого плану. По алкоголю я не особо люблю уступать, потому что это не понимаю смысла. спорт, да, люблю. А хотелось бы себя такого, как ты, к примеру, ну, к примеру, человечих, как таковых. Вместе вот мотивировать. Я такое тоже люблю побегать и спортом позаниматься. А когда я сам есть моменты, когда я встаю, там, хочу побегать, позаниматься спортом себя. А когда один, то как-то не знаю, мотивации только нету. А когда ты у тебя есть пара, О, это приятно. А быть влацем ещё больше вместе заниматься. И приятно, когда вы вместе что-то делаете обоюдно, и вместе занимаетесь и что-то строите и вместе что-то развиваетесь. Это вообще бомба.\",\"id\":5816,\"date\":\"2025-09-17 07:26:34+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\"},{\"type\":\"voice\",\"duration\":57,\"mime_type\":\"audio/ogg\",\"transcript\":\"А вообще, типа, я простой обычный парень, короче, то знакомился, где я курил, возле цемзавода, служу уже в армии третий год. С начала войны я уже, как здесь, защищаю Украину. А вообще я типа на маленьких летаю, но сейчас уже на больших крылах буду летать. Тоже будет детальную информацию уже можно отдельно будет сказать мне по Телеграму. Можно уже я просто на боевые уже еду. То как-то можно будет встретиться, если у меня там будет время, я приеду. Встретимся на кофе. А так постоянно в онлайне, если есть желание, то можно туда приезжать. Но там тихо, кстати, в Бурынь, кто туда будет ехать. Там очень тихо. Ага.\",\"id\":5817,\"date\":\"2025-09-17 07:27:37+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\"},{\"type\":\"voice\",\"duration\":120,\"mime_type\":\"audio/ogg\",\"transcript\":\"А вообще я в зале уже как я тут 4 месяца нахожусь после ну, ротация у нас была тут в Киеве, в области. Был в Сумах, я через день по 2 часа, короче, уделял в зале. Там кто-то час 30, а я просто 2 часа. Для меня это когда я занимаюсь спортом, для меня час занятий - это мало, я ещё хочу, я ещё хочу, я ещё хочу. Я просто убиваю себя настолько, и мне просто комфортно. Я понимаю, что я могу больше, больше чем кто-то. Потому что я спортом занимался с самого детства, и бегал довольно неплохо. Вот, а сейчас немножко из-за войны есть просто некоторые минуса, которые, блин, надо исправлять. За питанием по поводу, говорю как есть, короче, у меня по поводу питания вообще фигня. говно. Вот и да, я люблю, конечно, следить за питанием, но пока я здесь нахожусь кое-какое питание тут, блин, абы желудок забить и чтоб быть сытым. А когда я в отпуску, да, я стараюсь правильно питаться, проводить активное время, не сидеть на одном месте, а в основном куда-то тоже хожу, езжу, на рыбалку там, на велику покататься. Вот, а у меня есть ну, такое небольшое чисто для себя вот на велику, знаешь, куда-то поехать. Вот, к примеру, на Карпаты на велосипеде. Да, это жёстко будет. Зато интересно. Ну, это, конечно, перебор, хотя бы воды с собой. Или куда-то ещё на велосипеде поехать так далеко. Это тоже прикольно, блин, едешь, природа. Ну, это я уже так для себя, ну чтоб смогу я или нет.\",\"id\":5818,\"date\":\"2025-09-17 07:33:14+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\"},{\"type\":\"voice\",\"duration\":7,\"mime_type\":\"audio/ogg\",\"transcript\":\"Ты говоришь, что у тебя ещё какие-то аккаунты есть. Мне уже интересно, сколько у тебя там аккаунтов, штук 10? Telegram'ов?\",\"id\":5819,\"date\":\"2025-09-17 07:33:23+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\"},{\"type\":\"text\",\"id\":5822,\"date\":\"2025-09-17 09:50:24+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"ой😘\"},{\"type\":\"text\",\"id\":5823,\"date\":\"2025-09-17 09:50:35+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"так круто все рассказал\"},{\"type\":\"text\",\"id\":5825,\"date\":\"2025-09-17 09:52:15+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"ну у меня 2\"},{\"type\":\"text\",\"id\":5826,\"date\":\"2025-09-17 09:52:33+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"один больше для работы учебы\"},{\"type\":\"text\",\"id\":5827,\"date\":\"2025-09-17 09:52:44+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"а второй для общения\"},{\"type\":\"text\",\"id\":5828,\"date\":\"2025-09-17 09:53:03+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"а ты сам откуда, а то что-то я не поняла ?\"},{\"type\":\"voice\",\"duration\":2,\"mime_type\":\"audio/ogg\",\"transcript\":\"So, yes, brilliant. Mmm.\",\"id\":5887,\"date\":\"2025-09-17 12:31:12+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\"},{\"type\":\"text\",\"id\":5888,\"date\":\"2025-09-17 12:31:32+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Сейчас в часте Баришовка\"},{\"type\":\"text\",\"id\":5889,\"date\":\"2025-09-17 12:31:52+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"После завтра на выезд еду )\"},{\"type\":\"text\",\"id\":5892,\"date\":\"2025-09-17 12:35:14+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Чем занимаешься?)\"},{\"type\":\"text\",\"id\":5899,\"date\":\"2025-09-17 13:20:08+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"А родом откуда ?\"},{\"type\":\"voice\",\"duration\":54,\"mime_type\":\"audio/ogg\",\"transcript\":\"Привет. А, ну что там, как у тебя дела, рассказывай, интересно. Блин, у меня сейчас такие, не знаю, тяжёлые недели, и я просто не успеваю не то, что там покушать, что-то, блин, с подругами увидеться, я вообще ничего не успеваю. У меня эти юристы уже всю голову выели, короче, просто всем все мысли только об этом, чтобы быстрее это закончить, с этими документами, это какой-то кошмар. мне постоянно что-то присылают, мне нужно там что-то сделать, подписать. А, это какой-то капец. Эта вся бюрократия просто надоела. И я уже поскорее хочу это закончить, блин. Вот, сейчас взяла себе винишко, наконец-то, решила тут отдохнуть, хмм. Ну сама, конечно. Ну а что поделать?\",\"id\":5900,\"date\":\"2025-09-17 13:20:28+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\"},{\"type\":\"voice\",\"duration\":126,\"mime_type\":\"audio/ogg\",\"transcript\":\"Да, и откровенно говоря, тут огромные очень рокировки сейчас пойдут по недвижимости, по бизнесу, потому что у нас сейчас нелегко с этим становится. Основного бизнеса семьи по линии вот отца, вот, которого не стало, вот вместе с тем, что не стало его, не стало и возможности удерживать бизнесы. Вот отобрали возможность вести лицензированную деятельность. Э-э, вот, неприятный, на самом деле, момент, потому что кровью и потом, блин, это всё как бы строилось, серьёзное учреждение, очень много было ресурсов потрачено семьёй в целом на какие-то попытки пожить в нормальной стране, но, к сожалению, сейчас все бездействуют или не на связи, и как-то мёртвы вообще, и я живу, слава богу, вот, не- не видя вот подобной проблематике, просто пойду средства, и ничего на сегодняшний день я лучше, чем вот этот вот алгоритм для того, чтобы зарабатывать, ну, правда, я не видела и не знаю. И вот эта стратегия, да, то есть в зависимости от моих решений семья оставшаяся будет выбирать, куда капитализировать вообще собственные вложения, и получается, что да, нужны будут очень большие даже ресурсы, э-э, на оперативное управление просто этим всем капиталом. Грамотно его разделение, возможно, понадобится помощь даже там третьего, глаза, четвёртого и пятого образно, потому что я одна с этим с четырьмя аккаунтами сейчас еле справляюсь, за ними нужно следить. Вот, а я просто представляю, сколько их в перспективе этих аккаунтов будет, и это нужен будет, наверное, какой-то штат, я не знаю, чтобы этим всем управлять грамотно и без рисков. Ну, короче, я просто в шоке сейчас.\",\"id\":5901,\"date\":\"2025-09-17 13:20:28+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\"},{\"type\":\"voice\",\"duration\":61,\"mime_type\":\"audio/ogg\",\"transcript\":\"Но, как бы, да, не делят шкуру зайца убитого зверя. Но я просто стараюсь прокладывать по несколько планов. Знаешь, план А, план Б. Потенциально план, когда вот он нужен, да, и когда придут миллионы, хорошо быть готовыми к тому, чтобы работать с ними. А меня как-то пока эти цифры, а, чтобы запустить их в работу, не знаю, пугают. Знаешь, я бы вообще сама с удовольствием всё это забросила, но теперь все смотрят как бы на меня, да, и что я решу и тогда и пойдёт, э, в основном львиная доля капитала. Я реально не знаю. То есть одна я, так скажем, с четырьмя вот этими щитами, ну я не вытащу это всё. Мне даже банально нужен, ну как бы вот, ну не знаю, хотя бы, как это объяснить? Вот И\",\"id\":5902,\"date\":\"2025-09-17 13:20:28+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\"},{\"type\":\"voice\",\"duration\":300,\"mime_type\":\"audio/ogg\",\"transcript\":\"Я вообще, кстати, никогда не грезила, знаешь, с цифрами там. Вот я вообще когда-то была студентка, вот обычно училась, ну, на экономику и думала просто уйти вообще в бьюти. Друга ногти, скажем, делала, салон открыть. Вот мы думали, мы открыли, получается, один салон и думали сеть, но она открывает салон, блин, ну, потом был такой разговор серьёзный, я помню. Папа ещё до того, как его забрали, так скажем, то он тогда что-то вот сказал про своего хорошего друга. Такой вот, знаешь, старой школы, там член попечительского совета университета и такой он весь тени, я запомнила одну фразу, вот он потом с ним меня познакомил, в общем. Он сказал вот этому другу, что те, кто реально вот выигрывает, да, на рынке крипте особенно, да, делают это либо системно, либо никак. То есть я тогда ещё не понимала, что это такое вот за системно. Вот. Ну, короче, вот что-то у меня внутри потом щёлкнуло через пару недель. Я тогда ещё я тоже с ним познакомилась с этим другом. Вот. И всё, у меня просто башню тогда снесло после этого знакомства. Ты бы видела этого человека. Он такой, не знаю, тихий, без понтов, без этот Дубая, Теслы на аватарке. Зато у него под управлением алгоритмический фонд. 15 миллионов долларов у него было. Это у него в одном фонде, ещё у него несколько. И результаты вообще, о которых, знаешь, крипте не как бы, он в принципе не кичится этим, не кричит как-то. Вот. Ну, то есть в узких кругах только это все знают, но у него реально классные результаты. И можно сказать, ну, он не просто трейдер, он именно строит эти системы алгоритмические, вот. Которые, в принципе, позволяют большие капиталы, так скажем, распределять и без кучи там вот этих сотрудников. Я просто ненавижу работать с людьми, реально я я это не не вывезла бы, наверное, тоже. Вот. Я сначала даже попросилась, напросилась, так скажем, к нему посмотреть на это всё. Вот, у него, кстати, есть тоже брат, который вот член попечительского совета, получается. Ну, их там двое, вот. И с тем, и с тем, в общем, так общалась немного, и они мне немного вот поднатаскали. И вот просто как бы вообще вот это пипец, они управляют такой махиной, живут и ещё успевают что-то в жизни, прикинь, как-то проводить время, лайфстайл как-то налаживать. Да, и вот, в принципе, ну, даже потом уже так всё пошло, что вот мои подруги, знаешь, обсуждали там какой маникюр там сейчас в тренде, да, сейчас то. Да, я, получается, немного даже в это всё так погрузилась. Вот как автоматизировать эту всю торговлю, да, как там настроенный в целом, а, биржей. И вот как-то вот оно мне всё так пошло неплохо, что я сейчас вот у него, так скажем, даже есть направление, особенно это не афишируют там, получается, идёт как, а, ну, такая лаборатория небольшая исследовательская. Вот они сейчас там даже проводят соцопросы. В общем, тестируют разные вещи, там даже студентов бывает вытягивают некоторых. И вот там, получается, исследовательская группа 10 человек. И вот уже там, а, так скажем, ну, они вместе с другом выдают ценную информацию. Бывает так, что даже вот за какие-то даже деньги. Вот. И вот он уже там, так скажем, присматривается, кто вот способный и отбирает людей, так скажем, к себе в фонд. Ну, потому что как бы он говорит, проще вырастить, блин, с нуля человека своего, чем там преувеличивать, знаешь, там вот это, не знаю, брать какого-то готового трейдера с Ютуба, брать, который, ну, сфотошопленными там скринами доходности и тому подобное. Ну, короче. Вот просто я не знаю, может, можно ли тебе об этом говорить? Вообще готов ли ты, не знаю, такую информацию понимать, воспринимать вообще на одном вы мы с тобой вайбе или нет. Но у меня сейчас такое настроение, если честно, я выпила, блять. У меня ощущение, что, ну, честно, ну, ты не выглядишь каким-то вот таким пустым, что ли. Знают. Просто, наверное, не оказался ты там в правильном месте, в правильное время. Не знаю. Ну, короче, позавчера вот с ним тоже общались. Вот он там кое-что даже новое показывал стратегию.\",\"id\":5903,\"date\":\"2025-09-17 13:20:28+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\"},{\"type\":\"text\",\"id\":5931,\"date\":\"2025-09-17 14:05:01+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Бровари\"},{\"type\":\"text\",\"id\":5932,\"date\":\"2025-09-17 14:05:19+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Привет) все хорошо)\"},{\"type\":\"text\",\"id\":5933,\"date\":\"2025-09-17 14:09:05+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я знаю ты сможешь )\"},{\"type\":\"text\",\"id\":5935,\"date\":\"2025-09-17 14:09:48+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"А ты в каком районе Киева живешь?)\"},{\"type\":\"text\",\"id\":5937,\"date\":\"2025-09-17 14:11:51+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Я сейчас в турции\"},{\"type\":\"text\",\"id\":5938,\"date\":\"2025-09-17 14:13:48+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Готов )\"},{\"type\":\"text\",\"id\":5940,\"date\":\"2025-09-17 14:14:18+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Когда  будешь в Киеве )\"},{\"type\":\"text\",\"id\":5941,\"date\":\"2025-09-17 14:14:28+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Мне все интересно)\"},{\"type\":\"text\",\"id\":5942,\"date\":\"2025-09-17 14:14:47+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Можешь говорить?)\"},{\"type\":\"text\",\"id\":5951,\"date\":\"2025-09-17 14:24:30+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"через несколько дней\"},{\"type\":\"voice\",\"duration\":57,\"mime_type\":\"audio/ogg\",\"transcript\":\"И я долго думала, вообще, стоит ли делиться. Вот у меня сегодня такой странный момент был. Вот одна из стратегий, короче, отработала. Много позиций закрылось, и я это заметила только спустя полдня и смотрю, днём был шорт, э, так скажем, один всего, сейчас вообще плюс 300-500 баксов. Вот, и честно, мне в такие моменты хочется кому-то это показать, не потому, что там, ой, смотри, там, сколько у меня денег. Нет, просто это часть моей новой реальности, в которой я сейчас-то ещё плаваю, но пытаюсь разобраться, вот, как это всё получается. И вот тебе скину такой кусочек, вот, из-за чего и сегодня у меня настроение целый день было хорошее. Но только не думай, что это будет пижонить, не для этого просто делюсь. Всё-таки общаемся, уже здесь какой-то, не знаю, такие мысли, что хочется довериться немного.\",\"id\":5952,\"date\":\"2025-09-17 14:25:16+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\"},{\"type\":\"text\",\"id\":5955,\"date\":\"2025-09-17 14:34:13+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Мне интересно как ты так все делаешь я тоже так хочу )\"},{\"type\":\"text\",\"id\":5956,\"date\":\"2025-09-17 14:36:26+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"И как у тебя успехи Я тоже так  хочу работать)\"},{\"type\":\"text\",\"id\":5957,\"date\":\"2025-09-17 14:39:38+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Когда поговорим)\"},{\"type\":\"text\",\"id\":5958,\"date\":\"2025-09-17 14:49:32+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Я немного занята сейчас\"},{\"type\":\"text\",\"id\":5959,\"date\":\"2025-09-17 14:49:55+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Все расскажу тогда🥰\"},{\"type\":\"text\",\"id\":5961,\"date\":\"2025-09-17 14:51:04+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Хочу все знать о тебе ))\"},{\"type\":\"text\",\"id\":5962,\"date\":\"2025-09-17 15:30:49+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"ой прям все)))\"},{\"type\":\"text\",\"id\":5963,\"date\":\"2025-09-17 15:31:10+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"а когда у тебя были последние отношения?\"},{\"type\":\"text\",\"id\":5966,\"date\":\"2025-09-17 15:36:13+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Год назад\"},{\"type\":\"text\",\"id\":5967,\"date\":\"2025-09-17 15:36:19+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"А утебя ?)\"},{\"type\":\"text\",\"id\":5969,\"date\":\"2025-09-17 15:54:56+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Где-то так же\"},{\"type\":\"text\",\"id\":5970,\"date\":\"2025-09-17 15:55:16+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Человек вообще ничего от жизни не хотел\"},{\"type\":\"text\",\"id\":5971,\"date\":\"2025-09-17 15:55:51+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"А с такими сложно жить\"},{\"type\":\"text\",\"id\":5972,\"date\":\"2025-09-17 15:58:05+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Пиздец ( Я хочу жить хорошо деньги хорошо зарабатывать)\"},{\"type\":\"text\",\"id\":5973,\"date\":\"2025-09-17 15:58:17+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Может ты мен на учишь)\"},{\"type\":\"text\",\"id\":5974,\"date\":\"2025-09-17 15:58:28+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Хочу уже тебе увидить)\"},{\"type\":\"text\",\"id\":5976,\"date\":\"2025-09-17 16:00:09+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"а что ты сейчас делаешь?\"},{\"type\":\"text\",\"id\":5977,\"date\":\"2025-09-17 16:00:20+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"как у тебя вообще день?)\"},{\"type\":\"text\",\"id\":6044,\"date\":\"2025-09-17 18:35:25+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Отлично)\"},{\"type\":\"text\",\"id\":6045,\"date\":\"2025-09-17 18:35:38+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Отдхаю )\"},{\"type\":\"text\",\"id\":6046,\"date\":\"2025-09-17 18:35:46+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"А ты ?)\"},{\"type\":\"text\",\"id\":6078,\"date\":\"2025-09-18 11:05:53+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"какой отдых предпочитаешь?\"},{\"type\":\"text\",\"id\":6082,\"date\":\"2025-09-18 11:06:56+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Привет\"},{\"type\":\"text\",\"id\":6708,\"date\":\"2025-09-18 16:39:11+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Привет ))\"},{\"type\":\"text\",\"id\":6709,\"date\":\"2025-09-18 16:39:16+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Как ты ?)\"},{\"type\":\"text\",\"id\":6711,\"date\":\"2025-09-18 16:39:33+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"приветик\"},{\"type\":\"text\",\"id\":6712,\"date\":\"2025-09-18 16:39:42+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"ой у меня все здорово\"},{\"type\":\"text\",\"id\":6713,\"date\":\"2025-09-18 16:39:57+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"очень продуктивный день\"},{\"type\":\"text\",\"id\":6714,\"date\":\"2025-09-18 16:40:20+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"успела и на йогу сходить 🤩\"},{\"type\":\"text\",\"id\":6715,\"date\":\"2025-09-18 16:40:33+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"а у тебя что интересного?\"},{\"type\":\"text\",\"id\":6772,\"date\":\"2025-09-18 17:26:46+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Это хорошо)\"},{\"type\":\"text\",\"id\":6773,\"date\":\"2025-09-18 17:26:47+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Все отлично т\"},{\"type\":\"text\",\"id\":6774,\"date\":\"2025-09-18 17:26:51+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Собираю га боевые  ехать )\"},{\"type\":\"text\",\"id\":6782,\"date\":\"2025-09-18 17:49:23+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"капец\"},{\"type\":\"text\",\"id\":6784,\"date\":\"2025-09-18 17:49:29+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"буть осторожен\"},{\"type\":\"text\",\"id\":6785,\"date\":\"2025-09-18 17:49:41+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"это ты где-то где нет связи?\"},{\"type\":\"text\",\"id\":6799,\"date\":\"2025-09-18 18:09:39+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Связь будет 24/7\"},{\"type\":\"text\",\"id\":6800,\"date\":\"2025-09-18 18:09:58+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"А ты сможешь меня помогти  если что )\"},{\"type\":\"text\",\"id\":6816,\"date\":\"2025-09-18 18:48:22+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"а сегодня ты не отвечал целый день\"},{\"type\":\"text\",\"id\":6817,\"date\":\"2025-09-18 18:48:38+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"я и подумала может связи нету у тебя\"},{\"type\":\"text\",\"id\":6827,\"date\":\"2025-09-18 19:16:15+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Триполи через день (\"},{\"type\":\"text\",\"id\":6830,\"date\":\"2025-09-18 19:40:37+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"А что это ?\"},{\"type\":\"text\",\"id\":6831,\"date\":\"2025-09-18 19:41:03+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Чем ?)\"},{\"type\":\"text\",\"id\":6897,\"date\":\"2025-09-19 06:22:22+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"На машину )\"},{\"type\":\"text\",\"id\":6898,\"date\":\"2025-09-19 06:22:29+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Привет)\"},{\"type\":\"text\",\"id\":7000,\"date\":\"2025-09-19 09:59:23+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"приветик\"},{\"type\":\"text\",\"id\":7001,\"date\":\"2025-09-19 09:59:43+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"как твой день и настроение? 🙂\"},{\"type\":\"text\",\"id\":7111,\"date\":\"2025-09-19 10:29:25+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"День прекрасный)\"},{\"type\":\"text\",\"id\":7113,\"date\":\"2025-09-19 10:29:36+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"А ты как ?)\"},{\"type\":\"text\",\"id\":7117,\"date\":\"2025-09-19 10:31:05+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"что-то приболела чутка\"},{\"type\":\"text\",\"id\":7118,\"date\":\"2025-09-19 10:31:24+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"тренировку из-за этого пропустила\"},{\"type\":\"text\",\"id\":7119,\"date\":\"2025-09-19 10:31:34+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"а у тебя там есть как-то график?\"},{\"type\":\"text\",\"id\":7253,\"date\":\"2025-09-19 11:55:04+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Ммм\"},{\"type\":\"text\",\"id\":7620,\"date\":\"2025-09-19 18:38:47+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"спокойно ночи✨\"},{\"type\":\"text\",\"id\":7673,\"date\":\"2025-09-20 09:43:59+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"у тебя все хорошо 🥺?\"},{\"type\":\"text\",\"id\":7919,\"date\":\"2025-09-20 13:35:48+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Да ))\"},{\"type\":\"text\",\"id\":7920,\"date\":\"2025-09-20 13:35:59+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я ездил искать хату\"},{\"type\":\"text\",\"id\":7921,\"date\":\"2025-09-20 13:36:08+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Вчера без интернета был (\"},{\"type\":\"text\",\"id\":7923,\"date\":\"2025-09-20 14:02:13+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"переехать хочешь?\"},{\"type\":\"text\",\"id\":7929,\"date\":\"2025-09-20 14:28:29+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Да\"},{\"type\":\"text\",\"id\":7933,\"date\":\"2025-09-20 14:43:43+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Это где ты смотришь?\"},{\"type\":\"text\",\"id\":7934,\"date\":\"2025-09-20 14:43:49+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"В каком городе?\"},{\"type\":\"voice\",\"duration\":7,\"mime_type\":\"audio/ogg\",\"transcript\":\"Та Сумська область, а, уже нашёл, ми знайшли хату, короче. В бурені. Ну, плюс-мінус жить можна.\",\"id\":8004,\"date\":\"2025-09-20 15:46:28+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\"},{\"type\":\"text\",\"id\":8022,\"date\":\"2025-09-20 16:03:45+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"это тебе по работе там пожить нужно?\"},{\"type\":\"text\",\"id\":8116,\"date\":\"2025-09-20 18:06:36+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Да\"},{\"type\":\"text\",\"id\":8144,\"date\":\"2025-09-20 18:29:35+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"а где тебе нравится жить?\"},{\"type\":\"text\",\"id\":8177,\"date\":\"2025-09-20 18:53:36+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Дома\"},{\"type\":\"text\",\"id\":8178,\"date\":\"2025-09-20 18:53:46+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Спишь?\"},{\"type\":\"voice\",\"duration\":5,\"mime_type\":\"audio/ogg\",\"transcript\":\"Ну да, как-то ты мне пишешь поздно, когда я уже ложусь спать.\",\"id\":8180,\"date\":\"2025-09-20 18:55:53+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\"},{\"type\":\"text\",\"id\":8432,\"date\":\"2025-09-22 11:46:21+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"как ты там?\"},{\"type\":\"text\",\"id\":8505,\"date\":\"2025-09-22 15:05:17+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Отлично\"},{\"type\":\"text\",\"id\":8506,\"date\":\"2025-09-22 15:05:24+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"А ты как ?)\"},{\"type\":\"text\",\"id\":8513,\"date\":\"2025-09-22 15:18:00+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"переживаю за тебя\"},{\"type\":\"text\",\"id\":8514,\"date\":\"2025-09-22 15:19:06+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"ты говорил что тебе интересна та сфера в которой я сейчас\"},{\"type\":\"text\",\"id\":8515,\"date\":\"2025-09-22 15:19:42+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"может хочешь узнать болие подробно… и получать доп доход\"},{\"type\":\"text\",\"id\":8606,\"date\":\"2025-09-22 18:24:28+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я перехал на хату\"},{\"type\":\"text\",\"id\":8607,\"date\":\"2025-09-22 18:24:33+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Сейчас отдыхаю\"},{\"type\":\"text\",\"id\":8617,\"date\":\"2025-09-23 09:26:45+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"это ты с колегами живешь?\"},{\"type\":\"text\",\"id\":8819,\"date\":\"2025-09-24 10:23:27+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"привет как ты\"},{\"type\":\"text\",\"id\":9035,\"date\":\"2025-09-25 04:05:13+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Привет\"},{\"type\":\"text\",\"id\":9036,\"date\":\"2025-09-25 04:05:17+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Все ок\"},{\"type\":\"text\",\"id\":9037,\"date\":\"2025-09-25 04:05:22+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"На службы\"},{\"type\":\"text\",\"id\":9039,\"date\":\"2025-09-25 13:37:29+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"ты как то холодно общаешься\"},{\"type\":\"text\",\"id\":9040,\"date\":\"2025-09-25 13:37:31+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"почему ?\"},{\"type\":\"text\",\"id\":9295,\"date\":\"2025-09-26 06:08:57+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Ты так пропадаешь резко я не знаю когда ты всети\"},{\"type\":\"text\",\"id\":9296,\"date\":\"2025-09-26 06:09:08+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Привет))\"},{\"type\":\"text\",\"id\":9297,\"date\":\"2025-09-26 06:09:15+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Доброе утречко)\"},{\"type\":\"video_note\",\"duration\":9.415,\"mime_type\":\"video/mp4\",\"transcript\":\"Here's a transcription of the audio:\\n[ Muffled sound ]\\nShhh.\\n[ Sound of a click ]\",\"id\":9299,\"date\":\"2025-09-26 06:10:02+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\"},{\"type\":\"text\",\"id\":9300,\"date\":\"2025-09-26 06:10:36+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я так понимаю ты в Киеве уже ?\"},{\"type\":\"text\",\"id\":9301,\"date\":\"2025-09-26 06:10:55+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Если хочешь комне приезжай в город)\"},{\"type\":\"text\",\"id\":9303,\"date\":\"2025-09-26 09:41:01+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"я не пропалаю\"},{\"type\":\"text\",\"id\":9304,\"date\":\"2025-09-26 09:41:06+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"я же тебе пишу\"},{\"type\":\"text\",\"id\":9305,\"date\":\"2025-09-26 09:41:29+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"ого\"},{\"type\":\"text\",\"id\":9306,\"date\":\"2025-09-26 09:41:50+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"да\"},{\"type\":\"text\",\"id\":9307,\"date\":\"2025-09-26 09:42:28+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"это ты в сумах?\"},{\"type\":\"text\",\"id\":9312,\"date\":\"2025-09-26 13:09:44+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"В Бурини\"},{\"type\":\"text\",\"id\":9313,\"date\":\"2025-09-26 13:09:49+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Сумська область\"},{\"type\":\"text\",\"id\":9314,\"date\":\"2025-09-26 13:10:06+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я был рад тебе увидить)\"},{\"type\":\"text\",\"id\":9316,\"date\":\"2025-09-26 13:11:22+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"если ты хочешь поговорит по телефону\"},{\"type\":\"text\",\"id\":9317,\"date\":\"2025-09-26 13:11:33+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"то давай договоримся\"},{\"type\":\"text\",\"id\":9318,\"date\":\"2025-09-26 13:11:38+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Давай)\"},{\"type\":\"text\",\"id\":9319,\"date\":\"2025-09-26 13:11:40+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"когда будем всем удобно\"},{\"type\":\"text\",\"id\":9320,\"date\":\"2025-09-26 13:11:58+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Мне точно знать ответ комне приехала )\"},{\"type\":\"text\",\"id\":9321,\"date\":\"2025-09-26 13:12:15+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"ну локация не очень располагает к встрече)\"},{\"type\":\"text\",\"id\":9322,\"date\":\"2025-09-26 13:12:37+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"да и такое планировать нужно\"},{\"type\":\"text\",\"id\":9323,\"date\":\"2025-09-26 13:12:43+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"а не сходу\"},{\"type\":\"text\",\"id\":9324,\"date\":\"2025-09-26 13:12:48+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Но я пока не могу приехать в киев есть машина можешь приехать быстро )💨\"},{\"type\":\"text\",\"id\":9325,\"date\":\"2025-09-26 13:12:52+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"у меня же тут тоже дела\"},{\"type\":\"text\",\"id\":9326,\"date\":\"2025-09-26 13:13:10+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я в понидельник можешь приехать)\"},{\"type\":\"text\",\"id\":9327,\"date\":\"2025-09-26 13:13:21+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"я боюсь ехать\"},{\"type\":\"text\",\"id\":9328,\"date\":\"2025-09-26 13:13:33+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"я там не была\"},{\"type\":\"voice\",\"duration\":7,\"mime_type\":\"audio/ogg\",\"transcript\":\"Онлайн пусть, ничего страшного не будет, я буду всегда поддерживать онлайн, и, там, подвезу ещё тебя, встречу, там, точку тебе дам.\",\"id\":9329,\"date\":\"2025-09-26 13:13:45+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\"},{\"type\":\"voice\",\"duration\":3,\"mime_type\":\"audio/ogg\",\"transcript\":\"Ну зато побудешь, не бойся, я тебя буду поддерживать.\",\"id\":9330,\"date\":\"2025-09-26 13:14:06+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\"},{\"type\":\"text\",\"id\":9334,\"date\":\"2025-09-26 13:16:46+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"а где я там могу остановиться?\"},{\"type\":\"text\",\"id\":9335,\"date\":\"2025-09-26 13:17:17+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Да\"},{\"type\":\"text\",\"id\":9336,\"date\":\"2025-09-26 13:17:34+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Есть номер в Бурини в Конотопе\"},{\"type\":\"text\",\"id\":9337,\"date\":\"2025-09-26 13:17:41+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Все рядом\"},{\"type\":\"text\",\"id\":9338,\"date\":\"2025-09-26 13:17:54+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я же буду стобой как приедишь)\"},{\"type\":\"text\",\"id\":9339,\"date\":\"2025-09-26 13:18:24+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Не боялась не чего\"},{\"type\":\"text\",\"id\":9340,\"date\":\"2025-09-26 13:18:28+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"а тебе там долго нужно жить?\"},{\"type\":\"text\",\"id\":9341,\"date\":\"2025-09-26 13:18:40+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Целый год\"},{\"type\":\"text\",\"id\":9342,\"date\":\"2025-09-26 13:18:47+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"График 5/5\"},{\"type\":\"text\",\"id\":9343,\"date\":\"2025-09-26 13:19:43+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Кинь пару фото)\"},{\"type\":\"text\",\"id\":9345,\"date\":\"2025-09-26 14:10:37+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Красивая )))🤗\"},{\"type\":\"text\",\"id\":9346,\"date\":\"2025-09-26 14:10:44+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Кинь еще ))\"},{\"type\":\"text\",\"id\":9347,\"date\":\"2025-09-26 14:17:49+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Ты здесь ?)\"},{\"type\":\"text\",\"id\":9349,\"date\":\"2025-09-26 14:41:06+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Вау красиво очень 😍\"},{\"type\":\"text\",\"id\":9350,\"date\":\"2025-09-26 14:41:47+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Как картину на рисовали очень красивую )\"},{\"type\":\"text\",\"id\":9351,\"date\":\"2025-09-26 14:41:50+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"😍\"},{\"type\":\"text\",\"id\":9352,\"date\":\"2025-09-26 14:42:30+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Спасибо большое\"},{\"type\":\"text\",\"id\":9353,\"date\":\"2025-09-26 14:42:34+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Кинь еще )\"},{\"type\":\"text\",\"id\":9354,\"date\":\"2025-09-26 14:42:41+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"В понедельник будешь ?)\"},{\"type\":\"text\",\"id\":9355,\"date\":\"2025-09-26 14:42:54+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Ждать )\"},{\"type\":\"text\",\"id\":9356,\"date\":\"2025-09-26 14:43:20+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"хватит пока с тебя)\"},{\"type\":\"text\",\"id\":9357,\"date\":\"2025-09-26 14:43:29+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"чтобы не потерял сознание\"},{\"type\":\"text\",\"id\":9358,\"date\":\"2025-09-26 14:43:30+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Одну пожалуйста ☺️\"},{\"type\":\"text\",\"id\":9359,\"date\":\"2025-09-26 14:43:33+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"от моей красоты\"},{\"type\":\"text\",\"id\":9360,\"date\":\"2025-09-26 14:43:34+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Хах\"},{\"type\":\"text\",\"id\":9361,\"date\":\"2025-09-26 14:44:14+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Жду )) воздержусь ))\"},{\"type\":\"voice\",\"duration\":3,\"mime_type\":\"audio/ogg\",\"transcript\":\"Да, что такое? Что случилось?\",\"id\":9363,\"date\":\"2025-09-26 14:57:56+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\"},{\"type\":\"voice\",\"duration\":5,\"mime_type\":\"audio/ogg\",\"transcript\":\"Ну я не могу тебе пока ничего обещать касательно моего приезда, понимаешь?\",\"id\":9364,\"date\":\"2025-09-26 14:58:16+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\"},{\"type\":\"text\",\"id\":9365,\"date\":\"2025-09-26 14:58:43+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Понимаю\"},{\"type\":\"text\",\"id\":9366,\"date\":\"2025-09-26 14:58:49+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Что ты ценишь в девушках?\"},{\"type\":\"text\",\"id\":9367,\"date\":\"2025-09-26 14:59:36+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Верность Честность уважиени\"},{\"type\":\"voice\",\"duration\":143,\"mime_type\":\"audio/ogg\",\"transcript\":\"называется Ну, я, например, ценю в парнях, а если брать на основе моих прошлых отношений, где я постоянно тянула парня вверх, чтобы он развивался и помогал ему во всём. Ну, и отношения начались у нас, в принципе, достаточно-таки быстро, и я потом чуть пожалела, что только времени потратила на него. Хотя у меня были предложения постоянные это выйти замуж сразу же, и вообще ни о чём не париться. Но исходя из того, что я довольно-таки не с простой семьи. Ну и в целом, в последнее время стала как-то больше ценить в парнях дальновидность, когда парень вот может, но не просто мыслить, знаешь, там одну-две встречи вперёд, авось прокатит, авось рискну и будет искра буря безумия. А как поют в группе ЛСП. Угу. Ну и ценю, когда парень может мыслить, но не просто там, ну, встретимся на одну-две встречи или там, ну, мы встретимся, и это сразу будет будет какие-то просто обычные встречи без определённого развития. А Вообще, нужно мыслить так, что могут быть вообще долгосрочные отношения. Ну, типа должен мыслить так человек по мне, типа это могут быть отношения, возможно, дружеские, партнёрские, а-а, любовные, романтические, ну, то есть много, да, вариаций. Если человек, в принципе, ммм, как личность интересный, то с ним можно выстраивать разные форматы отношений. И это будет в плюс для обоих сторон. То есть это не будет так, что если мы там с тобой, да, условно, повстречались, э-э, погодика, для романтика, а-а, какого-то, и потом посрёмся и разойдёмся, как это обычно бывает у людей, да? Мне интересно вот конкретно, если я вложила своё время в любые отношения, а-а, то, чтобы это было надолго. И ладно, если бы, хмм, я не могла ничего дать парню, как обычные простушки какие-то. Но тут совсем другая история.\",\"id\":9370,\"date\":\"2025-09-26 15:03:14+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\"},{\"type\":\"voice\",\"duration\":107,\"mime_type\":\"audio/ogg\",\"transcript\":\"Да и в целом я верю, что настоящая любовь вообще и чувства просыпаются обычно в ситуациях. Вот должна быть какая-то ситуация, интересный какой-то сценарий, а чтобы была совместная искра, да? И чтобы было приятно, скажем так, обоим. А не так, что кто-то влюбился, а кто-то нет. Вот я за то, чтобы была взаимность. И я думаю, что лично у меня сейчас нет времени, как-то, знаешь, доверять каждому на слово. И теперь я оцениваю только действия и ценю, когда парень прямо любит пробовать, знаешь, что-то новое. Вот находчивых парней тоже очень не хватает сейчас. То есть я ценю находчивость. Такое вот качество и не люблю вечно сомневающихся в себе, про не- и ждущих какой-то манны с неба, что всё упадет на них ниоткуда. А также ценю инициативность и способность решить сложные задачи, а вместо того, чтобы ждать, пока я, да, это сделаю вот за них. Я вот ценю ещё богатство в уме. Это, ну, не про деньги, а просто когда человек не мелочится.\",\"id\":9371,\"date\":\"2025-09-26 15:05:50+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\"},{\"type\":\"text\",\"id\":9372,\"date\":\"2025-09-26 20:44:48+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я стобой согласен\"},{\"type\":\"text\",\"id\":9373,\"date\":\"2025-09-27 04:37:39+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Добрый ранок)\"},{\"type\":\"text\",\"id\":9375,\"date\":\"2025-09-27 04:37:59+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я жду нашей встречи)\"},{\"type\":\"text\",\"id\":9377,\"date\":\"2025-09-27 09:44:23+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"И часто мало знакомые девушки\"},{\"type\":\"text\",\"id\":9378,\"date\":\"2025-09-27 09:44:28+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Все кидают\"},{\"type\":\"text\",\"id\":9379,\"date\":\"2025-09-27 09:44:35+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"И едут к тебе\"},{\"type\":\"text\",\"id\":9380,\"date\":\"2025-09-27 09:44:42+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Неизвестно куди?)\"},{\"type\":\"text\",\"id\":9383,\"date\":\"2025-09-27 14:25:00+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Нет\"},{\"type\":\"text\",\"id\":9384,\"date\":\"2025-09-27 14:25:16+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я так не прошу\"},{\"type\":\"text\",\"id\":9385,\"date\":\"2025-09-27 14:25:31+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Чем занимаешься ?₽\"},{\"type\":\"text\",\"id\":9386,\"date\":\"2025-09-27 14:25:36+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Привет)\"},{\"type\":\"text\",\"id\":9387,\"date\":\"2025-09-27 14:27:25+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я особо не доверяю девушкам разнице кидают  розчерование иногда есть (\"},{\"type\":\"text\",\"id\":9388,\"date\":\"2025-09-27 14:27:59+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Кинь еще пару фото ))\"},{\"type\":\"text\",\"id\":9389,\"date\":\"2025-09-27 14:28:13+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"У меня нету настроения\"},{\"type\":\"text\",\"id\":9390,\"date\":\"2025-09-27 14:28:17+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Сегодня\"},{\"type\":\"text\",\"id\":9391,\"date\":\"2025-09-27 14:28:30+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Я поссорилась с мамой\"},{\"type\":\"text\",\"id\":9392,\"date\":\"2025-09-27 14:28:41+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Ааааа\"},{\"type\":\"text\",\"id\":9393,\"date\":\"2025-09-27 14:28:51+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Не переживай\"},{\"type\":\"text\",\"id\":9394,\"date\":\"2025-09-27 14:29:06+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Не поняла?\"},{\"type\":\"text\",\"id\":9395,\"date\":\"2025-09-27 14:29:13+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Помирешься\"},{\"type\":\"text\",\"id\":9396,\"date\":\"2025-09-27 14:29:25+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Оно то да\"},{\"type\":\"text\",\"id\":9397,\"date\":\"2025-09-27 14:29:34+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Но неприятно как-то на душе\"},{\"type\":\"text\",\"id\":9398,\"date\":\"2025-09-27 14:29:51+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Помнишь я тебе рассказывала\"},{\"type\":\"text\",\"id\":9399,\"date\":\"2025-09-27 14:29:53+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я тоже с мамой иногда ссорюсь\"},{\"type\":\"text\",\"id\":9400,\"date\":\"2025-09-27 14:29:54+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"О жизни\"},{\"type\":\"text\",\"id\":9401,\"date\":\"2025-09-27 14:29:56+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Гс?\"},{\"type\":\"text\",\"id\":9402,\"date\":\"2025-09-27 14:30:05+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Помириться быстро\"},{\"type\":\"text\",\"id\":9403,\"date\":\"2025-09-27 14:30:08+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Что и там все не просто сейчас у меня\"},{\"type\":\"text\",\"id\":9404,\"date\":\"2025-09-27 14:30:20+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я с мамой ретко общаюсь )\"},{\"type\":\"text\",\"id\":9405,\"date\":\"2025-09-27 14:30:33+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Давай поговорим)\"},{\"type\":\"text\",\"id\":9406,\"date\":\"2025-09-27 14:32:52+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"?\"},{\"type\":\"text\",\"id\":9407,\"date\":\"2025-09-27 14:33:04+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"В 21 смогу поговорить\"},{\"type\":\"text\",\"id\":9408,\"date\":\"2025-09-27 14:33:09+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Уделить время\"},{\"type\":\"text\",\"id\":9426,\"date\":\"2025-09-27 17:05:10+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Да)\"},{\"type\":\"text\",\"id\":9427,\"date\":\"2025-09-27 17:05:17+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я жду ))\"},{\"type\":\"text\",\"id\":9428,\"date\":\"2025-09-27 18:05:05+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Сейчас наберу\"},{\"type\":\"text\",\"id\":9429,\"date\":\"2025-09-27 18:13:33+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Готов ?\"},{\"type\":\"text\",\"id\":9430,\"date\":\"2025-09-27 18:19:57+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Да могу )\"},{\"type\":\"text\",\"id\":9450,\"date\":\"2025-09-28 11:48:31+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Как ты там?\"},{\"type\":\"text\",\"id\":9451,\"date\":\"2025-09-28 11:52:56+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Привет))\"},{\"type\":\"text\",\"id\":9452,\"date\":\"2025-09-28 11:53:04+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я могу поговорить стобой ))\"},{\"type\":\"text\",\"id\":9453,\"date\":\"2025-09-28 11:53:14+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Не давно проснулся)\"},{\"type\":\"text\",\"id\":9455,\"date\":\"2025-09-28 11:53:35+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Та подожди не успела ответить 😅\"},{\"type\":\"text\",\"id\":9456,\"date\":\"2025-09-28 11:53:58+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Нормально ты так спиш….\"},{\"type\":\"text\",\"id\":9457,\"date\":\"2025-09-28 11:54:09+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Поздно уснул?\"},{\"type\":\"text\",\"id\":9458,\"date\":\"2025-09-28 11:54:38+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я 12 часо отработал литал с 18:00 до 6:00\"},{\"type\":\"text\",\"id\":9459,\"date\":\"2025-09-28 11:54:53+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Ого\"},{\"type\":\"text\",\"id\":9460,\"date\":\"2025-09-28 11:54:55+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я сам так захотел\"},{\"type\":\"text\",\"id\":9461,\"date\":\"2025-09-28 11:55:02+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Весело было ))\"},{\"type\":\"text\",\"id\":9465,\"date\":\"2025-09-28 12:01:27+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Блин\"},{\"type\":\"text\",\"id\":9466,\"date\":\"2025-09-28 12:01:34+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"А мне так плохо сегодня\"},{\"type\":\"text\",\"id\":9467,\"date\":\"2025-09-28 12:01:54+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"С кровати даже тяжело сегодня вставать\"},{\"type\":\"text\",\"id\":9469,\"date\":\"2025-09-28 13:36:06+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Тривога не выспалась (\"},{\"type\":\"text\",\"id\":9470,\"date\":\"2025-09-28 13:36:27+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я привык ковсему\"},{\"type\":\"text\",\"id\":9475,\"date\":\"2025-09-28 16:23:55+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"ага\"},{\"type\":\"text\",\"id\":9477,\"date\":\"2025-09-28 17:28:12+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Спишь?\"},{\"type\":\"text\",\"id\":9478,\"date\":\"2025-09-29 02:29:20+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Добрый ранок ))\"},{\"type\":\"text\",\"id\":9491,\"date\":\"2025-09-29 12:16:05+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Привет\"},{\"type\":\"text\",\"id\":9493,\"date\":\"2025-09-29 12:16:54+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Приевет)\"},{\"type\":\"text\",\"id\":9494,\"date\":\"2025-09-29 12:16:58+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"🥰\"},{\"type\":\"text\",\"id\":9495,\"date\":\"2025-09-29 12:17:05+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Как ты?\"},{\"type\":\"text\",\"id\":9497,\"date\":\"2025-09-29 12:17:26+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Чем занимаешься?\"},{\"type\":\"text\",\"id\":9498,\"date\":\"2025-09-29 12:17:37+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"ну занята наверное\"},{\"type\":\"text\",\"id\":9499,\"date\":\"2025-09-29 12:19:22+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"у меня все зависло\"},{\"type\":\"text\",\"id\":9500,\"date\":\"2025-09-29 13:10:48+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"после твоего звонка\"},{\"type\":\"text\",\"id\":9501,\"date\":\"2025-09-29 13:11:17+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Понедельник день ….\"},{\"type\":\"text\",\"id\":9502,\"date\":\"2025-09-29 13:11:27+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Работаю\"},{\"type\":\"text\",\"id\":9503,\"date\":\"2025-09-29 13:11:29+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"А ты?\"},{\"type\":\"text\",\"id\":9682,\"date\":\"2025-10-05 10:29:09+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Привет)\"},{\"type\":\"text\",\"id\":9684,\"date\":\"2025-10-06 11:38:53+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Привет\"},{\"type\":\"text\",\"id\":9685,\"date\":\"2025-10-06 11:39:19+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Пропал ты куда-то\"},{\"type\":\"text\",\"id\":9692,\"date\":\"2025-10-06 16:35:41+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я сейчас на службе\"},{\"type\":\"text\",\"id\":9693,\"date\":\"2025-10-06 16:35:48+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Спал целый день\"},{\"type\":\"text\",\"id\":9694,\"date\":\"2025-10-06 16:35:53+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"А ты как !\"},{\"type\":\"text\",\"id\":9695,\"date\":\"2025-10-06 16:35:56+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"?\"},{\"type\":\"text\",\"id\":9696,\"date\":\"2025-10-06 16:36:23+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Когда  сможешь приехать  в буринь сумську область\"},{\"type\":\"text\",\"id\":9699,\"date\":\"2025-10-07 04:31:43+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Добрый ранок)\"}]},\"added_by\":8203479406,\"full_name\":\"Саша Громов\",\"source\":\"6\",\"comments\":null},\"source\":\"Badoo\"}}"
+          },
+          "telegram": {
+            "id": 8203479406,
+            "created_at": "2025-08-29T17:00:31.033459+00:00",
+            "updated_at": "2025-08-29T17:00:31.033459",
+            "tg_username": "amina_red",
+            "first_name": "Амина",
+            "last_name": null,
+            "role": "manager",
+            "status": "active",
+            "api_id": 26502193,
+            "api_hash": "841f2564dd4b3f62b440372b906374d4",
+            "string_session": "1ApWapzMBu8EGjJ4C-B_glbIOlemNqzMShYcmxVbJC9htojZU9wqSr_bTAZGC06ToS0bjl1OZMWjI8lnlzdpNnjQVj-7K0qKw3SCukcnUgcuJvOAEyMLKN1LzDnasQElngOOFNzBPK8DYJrWIayK8JlCrC2-b-So1bfR3n6SQcK-lOC38DyBqXmR8a1O0hxNQbN0sHa7rlGvbRGSZUH4TzqQ6-K-fUJChNKQD0DqE_dNBf6pr4WXaknHn9_wSvjVpEGzDnwaYgc7u8nmU2MQYPLlDIl72FVxcPyhLUUALoksCpZzgzQRO4RLMmOlaHN1saOyXBf_a0U6W4quBhJ3Bx4mPoOpF2NU=",
+            "phone": "+380630282951",
+            "proxy_ip": "5.22.204.236",
+            "proxy_port": 59100,
+            "proxy_login": "dabstep4enko",
+            "proxy_password": "FjGhduJaEN",
+            "state": "create_lead__saving",
+            "last_tg_api_call_at": null,
+            "state_data": "{\"create_lead\":{\"user_id\":338216406,\"db_row\":{\"user_id\":338216406,\"created_at\":\"2025-10-08T14:31:28.965252+00:00\",\"updated_at\":\"2025-10-08T14:31:28.965252+00:00\",\"first_name\":\"Саша\",\"last_name\":\"Громов\",\"username\":\"saha9406\",\"folder\":\"Segmentation\",\"chat_history\":{\"account_id\":8203479406,\"user_id\":338216406,\"messages\":[{\"type\":\"text\",\"id\":5681,\"date\":\"2025-09-16 14:59:12+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Приветик\"},{\"type\":\"text\",\"id\":5682,\"date\":\"2025-09-16 15:00:11+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Привет)\"},{\"type\":\"text\",\"id\":5683,\"date\":\"2025-09-16 15:00:18+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Как настроение твое ?)\"},{\"type\":\"text\",\"id\":5684,\"date\":\"2025-09-16 15:00:21+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Чем занимаешься ?)\"},{\"type\":\"text\",\"id\":5685,\"date\":\"2025-09-16 15:01:26+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"мне подруга дала твои контакты\"},{\"type\":\"text\",\"id\":5686,\"date\":\"2025-09-16 15:01:48+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"сказала что ты вроде норм парень, это правда?)\"},{\"type\":\"text\",\"id\":5687,\"date\":\"2025-09-16 15:01:57+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Да\"},{\"type\":\"text\",\"id\":5688,\"date\":\"2025-09-16 15:02:06+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я военный))\"},{\"type\":\"text\",\"id\":5693,\"date\":\"2025-09-16 15:13:03+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"я по фото поняла )\"},{\"type\":\"text\",\"id\":5694,\"date\":\"2025-09-16 15:13:16+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я постой парень\"},{\"type\":\"text\",\"id\":5695,\"date\":\"2025-09-16 15:13:22+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Без понтов\"},{\"type\":\"text\",\"id\":5696,\"date\":\"2025-09-16 15:13:32+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Не Курью\"},{\"type\":\"text\",\"id\":5697,\"date\":\"2025-09-16 15:13:35+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Не пью\"},{\"type\":\"text\",\"id\":5698,\"date\":\"2025-09-16 15:13:38+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Машини нету\"},{\"type\":\"text\",\"id\":5701,\"date\":\"2025-09-16 15:31:53+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"вот как нинче знакомиться\"},{\"type\":\"text\",\"id\":5714,\"date\":\"2025-09-16 16:36:53+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"?)\"},{\"type\":\"text\",\"id\":5715,\"date\":\"2025-09-16 16:37:03+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"По-разному знакомятся\"},{\"type\":\"voice\",\"duration\":145,\"mime_type\":\"audio/ogg\",\"transcript\":\"Так, ну давай я тебе запишу такое длинное голосовое о себе, потому что сейчас тоже между работой не всегда успеваю где-то поотвечать, позаходить на этот аккаунт. Блин, много кто пишет, и, в общем, не люблю вот эти, знаешь, короткие сообщения, лучше одно хорошее сообщение, содержательное и таким образом как-то двигаться. Вот. Я вообще такой человек, которому, ну, если брать по жизни, да, мне вот сложно сидеть на одном месте. Постоянно либо куда-то лечу, либо хотя бы на машине уезжаю в другой город, чтобы сменить обстановку. Вот. Из увлечений у меня спорт, в основном. Это большой теннис, зал, иногда стрельба из лука. Люблю экстремальные штуки. У меня парень тоже такой экстремал был. Я из тех, вообще, кто не может теперь жить без движения, если неделю ничего нового не попробую, чувствую, что застаиваюсь. В какой-то момент даже работала фитнес-тренером. Так что вот питание и спорт у меня прямо встроены в жизнь. Я часто сама вообще готовлю. Иногда выходит так, что мои блюда вкуснее ресторанных. Особенно завтраки люблю. Вот это вообще мой маленький ритуал радости такой. Э-э, вот. Считаю, что у каждого человека как-то должен быть какой-то такое видение своего идеального дня, как он себя представляет там через полгода свой лайфстайл. Вот. У меня, допустим, я это вижу как: я просыпаюсь не по будильнику, желательно от солнца, да, или от каких-то, так скажем, проявлений природы, да. Э-э, и лёгкая пробежка, вот зал, желательно до 9 часов это всё сделать утра. Потом вкусный завтрак, там кофе. А-а, днём работы, проекты, а вечером вообще обязательно что-то для души. Вот. Потому что у меня днём очень много ещё семейных там обязательств. Короче, потом расскажу. Блин, никуда я не могу уйти, к сожалению. Вот. А вечером такой: прогулка, романтика, концерт. Я вообще верю, что вот кайф от жизни складывается из таких вот мелочей. Вот. Так, ну ладно, всё, хватит про меня. Теперь твоя очередь. Расскажи вот о себе в таком же формате, какие у тебя увлечения, чем вообще дышишь, как твой идеальный день выглядит. Вот.\",\"id\":5784,\"date\":\"2025-09-16 21:34:28+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\"},{\"type\":\"voice\",\"duration\":168,\"mime_type\":\"audio/ogg\",\"transcript\":\"А, касательно моего рода деятельности, вообще, я в активном поиске. Вот куда можно было бы инвестировать нормально деньги. Был вообще разный у меня опыт в разных сферах. Хотя я обычная студентка, так, если посудить, но у моего отца очень много связей. Я помогала делать там видео, фото, контент, его знакомым, так скажем, бизнесы развивать. У него много здесь приятелей. Вот со своими тоже оффлайн какими-то бизнесами. Вот у моего отца даже зал был, я, получается, и там фитнес-тренером подрабатывала и делала контент под это всё. Вот. Но я поняла, что это слишком не моё, потому что вот, блин, мне сейчас вот на пассиве капает какая-то сумма, да, каждый месяц. И я просто поняла, что такое инвестиции. По сути ты тратишь, а, n-ное количество денег, да, ждёшь год, два, три, и потом получаешь все эти дивиденды вдвойне. Это если говорить, вот, о каких-то хороших инвестициях. Я, допустим, в салон подруги инвестировала, она этим горит, занимается. И мне просто капает денежка. Вот я могу себе позволить не работать. Короче, меня, ну, в принципе, интересуют какие-то такие сферы, вот, где не нужно быть заложницей этой всей оффлайн движухи, беготни, вот этого общения с людьми постоянного. Вот мне это не интересно. Мне интересно что-то онлайн, или какие-то вот тоже бизнесы, которые классно функционируют, можно в них что-то закинуть. Вот мне абсолютно не нравится работать, м, как бы с людьми, вот именно. Мне нравится отдыхать с людьми, вот. Но, как бы, знаешь, тоже, с родственниками я не могу сейчас всё это разорвать, эти все обязательства. Да и это неправильно. Вот. И сейчас, короче, мне приходится для себя осваивать новую тоже, э, такую, можно сказать, сферу, очень сложную. И пока что я планирую, вот, э, в этом, как бы, время проводить, вот, большую часть своей жизни, да, то есть сейчас в это посвящаю. Потому что я уверена, что получится. Вот уже вижу нехиловый такой результат. Вот. Но, не знаю, может быть, потом расскажу. Это, ну, в принципе, это не важно, чем человек занимается. Вот важно, на что он тратит, знаешь, 80% времени. Да, это важно. Ты расскажи, чем вообще ты, как бы, занимаешься, с чем работаешь. что? Потому что, вот, не знаю, для меня такие моменты на берегу вот важны. И вот, мне там не важно, сколько-то там у тебя заработок, там сумма. Мне главное, чтобы это было, а, как сказать, не деградация. Вот, понимаешь?\",\"id\":5785,\"date\":\"2025-09-16 21:34:53+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\"},{\"type\":\"text\",\"id\":5804,\"date\":\"2025-09-17 05:13:39+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Добро утро))\"},{\"type\":\"text\",\"id\":5805,\"date\":\"2025-09-17 05:14:00+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Выйду с Електрик  все розкажу о себе))\"},{\"type\":\"text\",\"id\":5806,\"date\":\"2025-09-17 06:17:56+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Мне все так интересно было слушать чем ты по жизни занимаешься)))\"},{\"type\":\"text\",\"id\":5807,\"date\":\"2025-09-17 06:18:24+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я тоже хочу монеты кинуть в обороты  но не знаю еще куда.\"},{\"type\":\"text\",\"id\":5808,\"date\":\"2025-09-17 06:18:41+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Думал битки но я не розбираюсь\"},{\"type\":\"text\",\"id\":5809,\"date\":\"2025-09-17 06:18:52+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я тоже люблю спор\"},{\"type\":\"text\",\"id\":5810,\"date\":\"2025-09-17 06:19:47+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я все децтво поро занимался. Футбол карате боокс ММА. Всего дальше по тихонько занимался )\"},{\"type\":\"text\",\"id\":5811,\"date\":\"2025-09-17 06:20:52+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Александр 27  187. рост 100 Важу\"},{\"type\":\"text\",\"id\":5812,\"date\":\"2025-09-17 06:21:35+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Люблю на велике катать очень далеко ) резкие потишестивя по Украине не только)\"},{\"type\":\"text\",\"id\":5813,\"date\":\"2025-09-17 06:25:46+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Люблю собак )\"},{\"type\":\"voice\",\"duration\":28,\"mime_type\":\"audio/ogg\",\"transcript\":\"Да, кстати, по поводу того, что ты рассказывала, куда монету можно влаживать. Я давно этим интересовался и не знаю куда влаживать. Я тоже люблю пассивный доход, я им интересовался, но у меня что-то не получалось этим найти, куда и вложить. Если знаешь ты куда, дальше будет интересно. Так и дальше этим заниматься.\",\"id\":5815,\"date\":\"2025-09-17 07:24:50+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\"},{\"type\":\"voice\",\"duration\":76,\"mime_type\":\"audio/ogg\",\"transcript\":\"Кстати, я ещё люблю оружие, рыбалку люблю, охоту люблю. И проводить когда-то время на выходных куда-то выезжать на природу, там ещё на дачу куда-то. На вельчиках погасать, на квадрику. шашлычки-башлычки такого плану. По алкоголю я не особо люблю уступать, потому что это не понимаю смысла. спорт, да, люблю. А хотелось бы себя такого, как ты, к примеру, ну, к примеру, человечих, как таковых. Вместе вот мотивировать. Я такое тоже люблю побегать и спортом позаниматься. А когда я сам есть моменты, когда я встаю, там, хочу побегать, позаниматься спортом себя. А когда один, то как-то не знаю, мотивации только нету. А когда ты у тебя есть пара, О, это приятно. А быть влацем ещё больше вместе заниматься. И приятно, когда вы вместе что-то делаете обоюдно, и вместе занимаетесь и что-то строите и вместе что-то развиваетесь. Это вообще бомба.\",\"id\":5816,\"date\":\"2025-09-17 07:26:34+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\"},{\"type\":\"voice\",\"duration\":57,\"mime_type\":\"audio/ogg\",\"transcript\":\"А вообще, типа, я простой обычный парень, короче, то знакомился, где я курил, возле цемзавода, служу уже в армии третий год. С начала войны я уже, как здесь, защищаю Украину. А вообще я типа на маленьких летаю, но сейчас уже на больших крылах буду летать. Тоже будет детальную информацию уже можно отдельно будет сказать мне по Телеграму. Можно уже я просто на боевые уже еду. То как-то можно будет встретиться, если у меня там будет время, я приеду. Встретимся на кофе. А так постоянно в онлайне, если есть желание, то можно туда приезжать. Но там тихо, кстати, в Бурынь, кто туда будет ехать. Там очень тихо. Ага.\",\"id\":5817,\"date\":\"2025-09-17 07:27:37+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\"},{\"type\":\"voice\",\"duration\":120,\"mime_type\":\"audio/ogg\",\"transcript\":\"А вообще я в зале уже как я тут 4 месяца нахожусь после ну, ротация у нас была тут в Киеве, в области. Был в Сумах, я через день по 2 часа, короче, уделял в зале. Там кто-то час 30, а я просто 2 часа. Для меня это когда я занимаюсь спортом, для меня час занятий - это мало, я ещё хочу, я ещё хочу, я ещё хочу. Я просто убиваю себя настолько, и мне просто комфортно. Я понимаю, что я могу больше, больше чем кто-то. Потому что я спортом занимался с самого детства, и бегал довольно неплохо. Вот, а сейчас немножко из-за войны есть просто некоторые минуса, которые, блин, надо исправлять. За питанием по поводу, говорю как есть, короче, у меня по поводу питания вообще фигня. говно. Вот и да, я люблю, конечно, следить за питанием, но пока я здесь нахожусь кое-какое питание тут, блин, абы желудок забить и чтоб быть сытым. А когда я в отпуску, да, я стараюсь правильно питаться, проводить активное время, не сидеть на одном месте, а в основном куда-то тоже хожу, езжу, на рыбалку там, на велику покататься. Вот, а у меня есть ну, такое небольшое чисто для себя вот на велику, знаешь, куда-то поехать. Вот, к примеру, на Карпаты на велосипеде. Да, это жёстко будет. Зато интересно. Ну, это, конечно, перебор, хотя бы воды с собой. Или куда-то ещё на велосипеде поехать так далеко. Это тоже прикольно, блин, едешь, природа. Ну, это я уже так для себя, ну чтоб смогу я или нет.\",\"id\":5818,\"date\":\"2025-09-17 07:33:14+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\"},{\"type\":\"voice\",\"duration\":7,\"mime_type\":\"audio/ogg\",\"transcript\":\"Ты говоришь, что у тебя ещё какие-то аккаунты есть. Мне уже интересно, сколько у тебя там аккаунтов, штук 10? Telegram'ов?\",\"id\":5819,\"date\":\"2025-09-17 07:33:23+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\"},{\"type\":\"text\",\"id\":5822,\"date\":\"2025-09-17 09:50:24+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"ой😘\"},{\"type\":\"text\",\"id\":5823,\"date\":\"2025-09-17 09:50:35+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"так круто все рассказал\"},{\"type\":\"text\",\"id\":5825,\"date\":\"2025-09-17 09:52:15+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"ну у меня 2\"},{\"type\":\"text\",\"id\":5826,\"date\":\"2025-09-17 09:52:33+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"один больше для работы учебы\"},{\"type\":\"text\",\"id\":5827,\"date\":\"2025-09-17 09:52:44+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"а второй для общения\"},{\"type\":\"text\",\"id\":5828,\"date\":\"2025-09-17 09:53:03+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"а ты сам откуда, а то что-то я не поняла ?\"},{\"type\":\"voice\",\"duration\":2,\"mime_type\":\"audio/ogg\",\"transcript\":\"So, yes, brilliant. Mmm.\",\"id\":5887,\"date\":\"2025-09-17 12:31:12+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\"},{\"type\":\"text\",\"id\":5888,\"date\":\"2025-09-17 12:31:32+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Сейчас в часте Баришовка\"},{\"type\":\"text\",\"id\":5889,\"date\":\"2025-09-17 12:31:52+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"После завтра на выезд еду )\"},{\"type\":\"text\",\"id\":5892,\"date\":\"2025-09-17 12:35:14+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Чем занимаешься?)\"},{\"type\":\"text\",\"id\":5899,\"date\":\"2025-09-17 13:20:08+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"А родом откуда ?\"},{\"type\":\"voice\",\"duration\":54,\"mime_type\":\"audio/ogg\",\"transcript\":\"Привет. А, ну что там, как у тебя дела, рассказывай, интересно. Блин, у меня сейчас такие, не знаю, тяжёлые недели, и я просто не успеваю не то, что там покушать, что-то, блин, с подругами увидеться, я вообще ничего не успеваю. У меня эти юристы уже всю голову выели, короче, просто всем все мысли только об этом, чтобы быстрее это закончить, с этими документами, это какой-то кошмар. мне постоянно что-то присылают, мне нужно там что-то сделать, подписать. А, это какой-то капец. Эта вся бюрократия просто надоела. И я уже поскорее хочу это закончить, блин. Вот, сейчас взяла себе винишко, наконец-то, решила тут отдохнуть, хмм. Ну сама, конечно. Ну а что поделать?\",\"id\":5900,\"date\":\"2025-09-17 13:20:28+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\"},{\"type\":\"voice\",\"duration\":126,\"mime_type\":\"audio/ogg\",\"transcript\":\"Да, и откровенно говоря, тут огромные очень рокировки сейчас пойдут по недвижимости, по бизнесу, потому что у нас сейчас нелегко с этим становится. Основного бизнеса семьи по линии вот отца, вот, которого не стало, вот вместе с тем, что не стало его, не стало и возможности удерживать бизнесы. Вот отобрали возможность вести лицензированную деятельность. Э-э, вот, неприятный, на самом деле, момент, потому что кровью и потом, блин, это всё как бы строилось, серьёзное учреждение, очень много было ресурсов потрачено семьёй в целом на какие-то попытки пожить в нормальной стране, но, к сожалению, сейчас все бездействуют или не на связи, и как-то мёртвы вообще, и я живу, слава богу, вот, не- не видя вот подобной проблематике, просто пойду средства, и ничего на сегодняшний день я лучше, чем вот этот вот алгоритм для того, чтобы зарабатывать, ну, правда, я не видела и не знаю. И вот эта стратегия, да, то есть в зависимости от моих решений семья оставшаяся будет выбирать, куда капитализировать вообще собственные вложения, и получается, что да, нужны будут очень большие даже ресурсы, э-э, на оперативное управление просто этим всем капиталом. Грамотно его разделение, возможно, понадобится помощь даже там третьего, глаза, четвёртого и пятого образно, потому что я одна с этим с четырьмя аккаунтами сейчас еле справляюсь, за ними нужно следить. Вот, а я просто представляю, сколько их в перспективе этих аккаунтов будет, и это нужен будет, наверное, какой-то штат, я не знаю, чтобы этим всем управлять грамотно и без рисков. Ну, короче, я просто в шоке сейчас.\",\"id\":5901,\"date\":\"2025-09-17 13:20:28+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\"},{\"type\":\"voice\",\"duration\":61,\"mime_type\":\"audio/ogg\",\"transcript\":\"Но, как бы, да, не делят шкуру зайца убитого зверя. Но я просто стараюсь прокладывать по несколько планов. Знаешь, план А, план Б. Потенциально план, когда вот он нужен, да, и когда придут миллионы, хорошо быть готовыми к тому, чтобы работать с ними. А меня как-то пока эти цифры, а, чтобы запустить их в работу, не знаю, пугают. Знаешь, я бы вообще сама с удовольствием всё это забросила, но теперь все смотрят как бы на меня, да, и что я решу и тогда и пойдёт, э, в основном львиная доля капитала. Я реально не знаю. То есть одна я, так скажем, с четырьмя вот этими щитами, ну я не вытащу это всё. Мне даже банально нужен, ну как бы вот, ну не знаю, хотя бы, как это объяснить? Вот И\",\"id\":5902,\"date\":\"2025-09-17 13:20:28+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\"},{\"type\":\"voice\",\"duration\":300,\"mime_type\":\"audio/ogg\",\"transcript\":\"Я вообще, кстати, никогда не грезила, знаешь, с цифрами там. Вот я вообще когда-то была студентка, вот обычно училась, ну, на экономику и думала просто уйти вообще в бьюти. Друга ногти, скажем, делала, салон открыть. Вот мы думали, мы открыли, получается, один салон и думали сеть, но она открывает салон, блин, ну, потом был такой разговор серьёзный, я помню. Папа ещё до того, как его забрали, так скажем, то он тогда что-то вот сказал про своего хорошего друга. Такой вот, знаешь, старой школы, там член попечительского совета университета и такой он весь тени, я запомнила одну фразу, вот он потом с ним меня познакомил, в общем. Он сказал вот этому другу, что те, кто реально вот выигрывает, да, на рынке крипте особенно, да, делают это либо системно, либо никак. То есть я тогда ещё не понимала, что это такое вот за системно. Вот. Ну, короче, вот что-то у меня внутри потом щёлкнуло через пару недель. Я тогда ещё я тоже с ним познакомилась с этим другом. Вот. И всё, у меня просто башню тогда снесло после этого знакомства. Ты бы видела этого человека. Он такой, не знаю, тихий, без понтов, без этот Дубая, Теслы на аватарке. Зато у него под управлением алгоритмический фонд. 15 миллионов долларов у него было. Это у него в одном фонде, ещё у него несколько. И результаты вообще, о которых, знаешь, крипте не как бы, он в принципе не кичится этим, не кричит как-то. Вот. Ну, то есть в узких кругах только это все знают, но у него реально классные результаты. И можно сказать, ну, он не просто трейдер, он именно строит эти системы алгоритмические, вот. Которые, в принципе, позволяют большие капиталы, так скажем, распределять и без кучи там вот этих сотрудников. Я просто ненавижу работать с людьми, реально я я это не не вывезла бы, наверное, тоже. Вот. Я сначала даже попросилась, напросилась, так скажем, к нему посмотреть на это всё. Вот, у него, кстати, есть тоже брат, который вот член попечительского совета, получается. Ну, их там двое, вот. И с тем, и с тем, в общем, так общалась немного, и они мне немного вот поднатаскали. И вот просто как бы вообще вот это пипец, они управляют такой махиной, живут и ещё успевают что-то в жизни, прикинь, как-то проводить время, лайфстайл как-то налаживать. Да, и вот, в принципе, ну, даже потом уже так всё пошло, что вот мои подруги, знаешь, обсуждали там какой маникюр там сейчас в тренде, да, сейчас то. Да, я, получается, немного даже в это всё так погрузилась. Вот как автоматизировать эту всю торговлю, да, как там настроенный в целом, а, биржей. И вот как-то вот оно мне всё так пошло неплохо, что я сейчас вот у него, так скажем, даже есть направление, особенно это не афишируют там, получается, идёт как, а, ну, такая лаборатория небольшая исследовательская. Вот они сейчас там даже проводят соцопросы. В общем, тестируют разные вещи, там даже студентов бывает вытягивают некоторых. И вот там, получается, исследовательская группа 10 человек. И вот уже там, а, так скажем, ну, они вместе с другом выдают ценную информацию. Бывает так, что даже вот за какие-то даже деньги. Вот. И вот он уже там, так скажем, присматривается, кто вот способный и отбирает людей, так скажем, к себе в фонд. Ну, потому что как бы он говорит, проще вырастить, блин, с нуля человека своего, чем там преувеличивать, знаешь, там вот это, не знаю, брать какого-то готового трейдера с Ютуба, брать, который, ну, сфотошопленными там скринами доходности и тому подобное. Ну, короче. Вот просто я не знаю, может, можно ли тебе об этом говорить? Вообще готов ли ты, не знаю, такую информацию понимать, воспринимать вообще на одном вы мы с тобой вайбе или нет. Но у меня сейчас такое настроение, если честно, я выпила, блять. У меня ощущение, что, ну, честно, ну, ты не выглядишь каким-то вот таким пустым, что ли. Знают. Просто, наверное, не оказался ты там в правильном месте, в правильное время. Не знаю. Ну, короче, позавчера вот с ним тоже общались. Вот он там кое-что даже новое показывал стратегию.\",\"id\":5903,\"date\":\"2025-09-17 13:20:28+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\"},{\"type\":\"text\",\"id\":5931,\"date\":\"2025-09-17 14:05:01+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Бровари\"},{\"type\":\"text\",\"id\":5932,\"date\":\"2025-09-17 14:05:19+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Привет) все хорошо)\"},{\"type\":\"text\",\"id\":5933,\"date\":\"2025-09-17 14:09:05+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я знаю ты сможешь )\"},{\"type\":\"text\",\"id\":5935,\"date\":\"2025-09-17 14:09:48+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"А ты в каком районе Киева живешь?)\"},{\"type\":\"text\",\"id\":5937,\"date\":\"2025-09-17 14:11:51+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Я сейчас в турции\"},{\"type\":\"text\",\"id\":5938,\"date\":\"2025-09-17 14:13:48+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Готов )\"},{\"type\":\"text\",\"id\":5940,\"date\":\"2025-09-17 14:14:18+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Когда  будешь в Киеве )\"},{\"type\":\"text\",\"id\":5941,\"date\":\"2025-09-17 14:14:28+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Мне все интересно)\"},{\"type\":\"text\",\"id\":5942,\"date\":\"2025-09-17 14:14:47+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Можешь говорить?)\"},{\"type\":\"text\",\"id\":5951,\"date\":\"2025-09-17 14:24:30+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"через несколько дней\"},{\"type\":\"voice\",\"duration\":57,\"mime_type\":\"audio/ogg\",\"transcript\":\"И я долго думала, вообще, стоит ли делиться. Вот у меня сегодня такой странный момент был. Вот одна из стратегий, короче, отработала. Много позиций закрылось, и я это заметила только спустя полдня и смотрю, днём был шорт, э, так скажем, один всего, сейчас вообще плюс 300-500 баксов. Вот, и честно, мне в такие моменты хочется кому-то это показать, не потому, что там, ой, смотри, там, сколько у меня денег. Нет, просто это часть моей новой реальности, в которой я сейчас-то ещё плаваю, но пытаюсь разобраться, вот, как это всё получается. И вот тебе скину такой кусочек, вот, из-за чего и сегодня у меня настроение целый день было хорошее. Но только не думай, что это будет пижонить, не для этого просто делюсь. Всё-таки общаемся, уже здесь какой-то, не знаю, такие мысли, что хочется довериться немного.\",\"id\":5952,\"date\":\"2025-09-17 14:25:16+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\"},{\"type\":\"text\",\"id\":5955,\"date\":\"2025-09-17 14:34:13+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Мне интересно как ты так все делаешь я тоже так хочу )\"},{\"type\":\"text\",\"id\":5956,\"date\":\"2025-09-17 14:36:26+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"И как у тебя успехи Я тоже так  хочу работать)\"},{\"type\":\"text\",\"id\":5957,\"date\":\"2025-09-17 14:39:38+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Когда поговорим)\"},{\"type\":\"text\",\"id\":5958,\"date\":\"2025-09-17 14:49:32+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Я немного занята сейчас\"},{\"type\":\"text\",\"id\":5959,\"date\":\"2025-09-17 14:49:55+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Все расскажу тогда🥰\"},{\"type\":\"text\",\"id\":5961,\"date\":\"2025-09-17 14:51:04+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Хочу все знать о тебе ))\"},{\"type\":\"text\",\"id\":5962,\"date\":\"2025-09-17 15:30:49+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"ой прям все)))\"},{\"type\":\"text\",\"id\":5963,\"date\":\"2025-09-17 15:31:10+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"а когда у тебя были последние отношения?\"},{\"type\":\"text\",\"id\":5966,\"date\":\"2025-09-17 15:36:13+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Год назад\"},{\"type\":\"text\",\"id\":5967,\"date\":\"2025-09-17 15:36:19+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"А утебя ?)\"},{\"type\":\"text\",\"id\":5969,\"date\":\"2025-09-17 15:54:56+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Где-то так же\"},{\"type\":\"text\",\"id\":5970,\"date\":\"2025-09-17 15:55:16+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Человек вообще ничего от жизни не хотел\"},{\"type\":\"text\",\"id\":5971,\"date\":\"2025-09-17 15:55:51+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"А с такими сложно жить\"},{\"type\":\"text\",\"id\":5972,\"date\":\"2025-09-17 15:58:05+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Пиздец ( Я хочу жить хорошо деньги хорошо зарабатывать)\"},{\"type\":\"text\",\"id\":5973,\"date\":\"2025-09-17 15:58:17+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Может ты мен на учишь)\"},{\"type\":\"text\",\"id\":5974,\"date\":\"2025-09-17 15:58:28+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Хочу уже тебе увидить)\"},{\"type\":\"text\",\"id\":5976,\"date\":\"2025-09-17 16:00:09+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"а что ты сейчас делаешь?\"},{\"type\":\"text\",\"id\":5977,\"date\":\"2025-09-17 16:00:20+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"как у тебя вообще день?)\"},{\"type\":\"text\",\"id\":6044,\"date\":\"2025-09-17 18:35:25+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Отлично)\"},{\"type\":\"text\",\"id\":6045,\"date\":\"2025-09-17 18:35:38+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Отдхаю )\"},{\"type\":\"text\",\"id\":6046,\"date\":\"2025-09-17 18:35:46+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"А ты ?)\"},{\"type\":\"text\",\"id\":6078,\"date\":\"2025-09-18 11:05:53+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"какой отдых предпочитаешь?\"},{\"type\":\"text\",\"id\":6082,\"date\":\"2025-09-18 11:06:56+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Привет\"},{\"type\":\"text\",\"id\":6708,\"date\":\"2025-09-18 16:39:11+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Привет ))\"},{\"type\":\"text\",\"id\":6709,\"date\":\"2025-09-18 16:39:16+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Как ты ?)\"},{\"type\":\"text\",\"id\":6711,\"date\":\"2025-09-18 16:39:33+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"приветик\"},{\"type\":\"text\",\"id\":6712,\"date\":\"2025-09-18 16:39:42+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"ой у меня все здорово\"},{\"type\":\"text\",\"id\":6713,\"date\":\"2025-09-18 16:39:57+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"очень продуктивный день\"},{\"type\":\"text\",\"id\":6714,\"date\":\"2025-09-18 16:40:20+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"успела и на йогу сходить 🤩\"},{\"type\":\"text\",\"id\":6715,\"date\":\"2025-09-18 16:40:33+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"а у тебя что интересного?\"},{\"type\":\"text\",\"id\":6772,\"date\":\"2025-09-18 17:26:46+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Это хорошо)\"},{\"type\":\"text\",\"id\":6773,\"date\":\"2025-09-18 17:26:47+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Все отлично т\"},{\"type\":\"text\",\"id\":6774,\"date\":\"2025-09-18 17:26:51+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Собираю га боевые  ехать )\"},{\"type\":\"text\",\"id\":6782,\"date\":\"2025-09-18 17:49:23+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"капец\"},{\"type\":\"text\",\"id\":6784,\"date\":\"2025-09-18 17:49:29+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"буть осторожен\"},{\"type\":\"text\",\"id\":6785,\"date\":\"2025-09-18 17:49:41+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"это ты где-то где нет связи?\"},{\"type\":\"text\",\"id\":6799,\"date\":\"2025-09-18 18:09:39+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Связь будет 24/7\"},{\"type\":\"text\",\"id\":6800,\"date\":\"2025-09-18 18:09:58+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"А ты сможешь меня помогти  если что )\"},{\"type\":\"text\",\"id\":6816,\"date\":\"2025-09-18 18:48:22+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"а сегодня ты не отвечал целый день\"},{\"type\":\"text\",\"id\":6817,\"date\":\"2025-09-18 18:48:38+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"я и подумала может связи нету у тебя\"},{\"type\":\"text\",\"id\":6827,\"date\":\"2025-09-18 19:16:15+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Триполи через день (\"},{\"type\":\"text\",\"id\":6830,\"date\":\"2025-09-18 19:40:37+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"А что это ?\"},{\"type\":\"text\",\"id\":6831,\"date\":\"2025-09-18 19:41:03+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Чем ?)\"},{\"type\":\"text\",\"id\":6897,\"date\":\"2025-09-19 06:22:22+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"На машину )\"},{\"type\":\"text\",\"id\":6898,\"date\":\"2025-09-19 06:22:29+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Привет)\"},{\"type\":\"text\",\"id\":7000,\"date\":\"2025-09-19 09:59:23+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"приветик\"},{\"type\":\"text\",\"id\":7001,\"date\":\"2025-09-19 09:59:43+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"как твой день и настроение? 🙂\"},{\"type\":\"text\",\"id\":7111,\"date\":\"2025-09-19 10:29:25+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"День прекрасный)\"},{\"type\":\"text\",\"id\":7113,\"date\":\"2025-09-19 10:29:36+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"А ты как ?)\"},{\"type\":\"text\",\"id\":7117,\"date\":\"2025-09-19 10:31:05+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"что-то приболела чутка\"},{\"type\":\"text\",\"id\":7118,\"date\":\"2025-09-19 10:31:24+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"тренировку из-за этого пропустила\"},{\"type\":\"text\",\"id\":7119,\"date\":\"2025-09-19 10:31:34+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"а у тебя там есть как-то график?\"},{\"type\":\"text\",\"id\":7253,\"date\":\"2025-09-19 11:55:04+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Ммм\"},{\"type\":\"text\",\"id\":7620,\"date\":\"2025-09-19 18:38:47+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"спокойно ночи✨\"},{\"type\":\"text\",\"id\":7673,\"date\":\"2025-09-20 09:43:59+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"у тебя все хорошо 🥺?\"},{\"type\":\"text\",\"id\":7919,\"date\":\"2025-09-20 13:35:48+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Да ))\"},{\"type\":\"text\",\"id\":7920,\"date\":\"2025-09-20 13:35:59+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я ездил искать хату\"},{\"type\":\"text\",\"id\":7921,\"date\":\"2025-09-20 13:36:08+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Вчера без интернета был (\"},{\"type\":\"text\",\"id\":7923,\"date\":\"2025-09-20 14:02:13+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"переехать хочешь?\"},{\"type\":\"text\",\"id\":7929,\"date\":\"2025-09-20 14:28:29+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Да\"},{\"type\":\"text\",\"id\":7933,\"date\":\"2025-09-20 14:43:43+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Это где ты смотришь?\"},{\"type\":\"text\",\"id\":7934,\"date\":\"2025-09-20 14:43:49+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"В каком городе?\"},{\"type\":\"voice\",\"duration\":7,\"mime_type\":\"audio/ogg\",\"transcript\":\"Та Сумська область, а, уже нашёл, ми знайшли хату, короче. В бурені. Ну, плюс-мінус жить можна.\",\"id\":8004,\"date\":\"2025-09-20 15:46:28+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\"},{\"type\":\"text\",\"id\":8022,\"date\":\"2025-09-20 16:03:45+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"это тебе по работе там пожить нужно?\"},{\"type\":\"text\",\"id\":8116,\"date\":\"2025-09-20 18:06:36+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Да\"},{\"type\":\"text\",\"id\":8144,\"date\":\"2025-09-20 18:29:35+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"а где тебе нравится жить?\"},{\"type\":\"text\",\"id\":8177,\"date\":\"2025-09-20 18:53:36+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Дома\"},{\"type\":\"text\",\"id\":8178,\"date\":\"2025-09-20 18:53:46+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Спишь?\"},{\"type\":\"voice\",\"duration\":5,\"mime_type\":\"audio/ogg\",\"transcript\":\"Ну да, как-то ты мне пишешь поздно, когда я уже ложусь спать.\",\"id\":8180,\"date\":\"2025-09-20 18:55:53+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\"},{\"type\":\"text\",\"id\":8432,\"date\":\"2025-09-22 11:46:21+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"как ты там?\"},{\"type\":\"text\",\"id\":8505,\"date\":\"2025-09-22 15:05:17+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Отлично\"},{\"type\":\"text\",\"id\":8506,\"date\":\"2025-09-22 15:05:24+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"А ты как ?)\"},{\"type\":\"text\",\"id\":8513,\"date\":\"2025-09-22 15:18:00+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"переживаю за тебя\"},{\"type\":\"text\",\"id\":8514,\"date\":\"2025-09-22 15:19:06+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"ты говорил что тебе интересна та сфера в которой я сейчас\"},{\"type\":\"text\",\"id\":8515,\"date\":\"2025-09-22 15:19:42+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"может хочешь узнать болие подробно… и получать доп доход\"},{\"type\":\"text\",\"id\":8606,\"date\":\"2025-09-22 18:24:28+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я перехал на хату\"},{\"type\":\"text\",\"id\":8607,\"date\":\"2025-09-22 18:24:33+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Сейчас отдыхаю\"},{\"type\":\"text\",\"id\":8617,\"date\":\"2025-09-23 09:26:45+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"это ты с колегами живешь?\"},{\"type\":\"text\",\"id\":8819,\"date\":\"2025-09-24 10:23:27+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"привет как ты\"},{\"type\":\"text\",\"id\":9035,\"date\":\"2025-09-25 04:05:13+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Привет\"},{\"type\":\"text\",\"id\":9036,\"date\":\"2025-09-25 04:05:17+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Все ок\"},{\"type\":\"text\",\"id\":9037,\"date\":\"2025-09-25 04:05:22+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"На службы\"},{\"type\":\"text\",\"id\":9039,\"date\":\"2025-09-25 13:37:29+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"ты как то холодно общаешься\"},{\"type\":\"text\",\"id\":9040,\"date\":\"2025-09-25 13:37:31+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"почему ?\"},{\"type\":\"text\",\"id\":9295,\"date\":\"2025-09-26 06:08:57+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Ты так пропадаешь резко я не знаю когда ты всети\"},{\"type\":\"text\",\"id\":9296,\"date\":\"2025-09-26 06:09:08+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Привет))\"},{\"type\":\"text\",\"id\":9297,\"date\":\"2025-09-26 06:09:15+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Доброе утречко)\"},{\"type\":\"video_note\",\"duration\":9.415,\"mime_type\":\"video/mp4\",\"transcript\":\"Here's a transcription of the audio:\\n[ Muffled sound ]\\nShhh.\\n[ Sound of a click ]\",\"id\":9299,\"date\":\"2025-09-26 06:10:02+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\"},{\"type\":\"text\",\"id\":9300,\"date\":\"2025-09-26 06:10:36+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я так понимаю ты в Киеве уже ?\"},{\"type\":\"text\",\"id\":9301,\"date\":\"2025-09-26 06:10:55+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Если хочешь комне приезжай в город)\"},{\"type\":\"text\",\"id\":9303,\"date\":\"2025-09-26 09:41:01+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"я не пропалаю\"},{\"type\":\"text\",\"id\":9304,\"date\":\"2025-09-26 09:41:06+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"я же тебе пишу\"},{\"type\":\"text\",\"id\":9305,\"date\":\"2025-09-26 09:41:29+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"ого\"},{\"type\":\"text\",\"id\":9306,\"date\":\"2025-09-26 09:41:50+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"да\"},{\"type\":\"text\",\"id\":9307,\"date\":\"2025-09-26 09:42:28+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"это ты в сумах?\"},{\"type\":\"text\",\"id\":9312,\"date\":\"2025-09-26 13:09:44+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"В Бурини\"},{\"type\":\"text\",\"id\":9313,\"date\":\"2025-09-26 13:09:49+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Сумська область\"},{\"type\":\"text\",\"id\":9314,\"date\":\"2025-09-26 13:10:06+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я был рад тебе увидить)\"},{\"type\":\"text\",\"id\":9316,\"date\":\"2025-09-26 13:11:22+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"если ты хочешь поговорит по телефону\"},{\"type\":\"text\",\"id\":9317,\"date\":\"2025-09-26 13:11:33+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"то давай договоримся\"},{\"type\":\"text\",\"id\":9318,\"date\":\"2025-09-26 13:11:38+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Давай)\"},{\"type\":\"text\",\"id\":9319,\"date\":\"2025-09-26 13:11:40+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"когда будем всем удобно\"},{\"type\":\"text\",\"id\":9320,\"date\":\"2025-09-26 13:11:58+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Мне точно знать ответ комне приехала )\"},{\"type\":\"text\",\"id\":9321,\"date\":\"2025-09-26 13:12:15+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"ну локация не очень располагает к встрече)\"},{\"type\":\"text\",\"id\":9322,\"date\":\"2025-09-26 13:12:37+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"да и такое планировать нужно\"},{\"type\":\"text\",\"id\":9323,\"date\":\"2025-09-26 13:12:43+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"а не сходу\"},{\"type\":\"text\",\"id\":9324,\"date\":\"2025-09-26 13:12:48+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Но я пока не могу приехать в киев есть машина можешь приехать быстро )💨\"},{\"type\":\"text\",\"id\":9325,\"date\":\"2025-09-26 13:12:52+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"у меня же тут тоже дела\"},{\"type\":\"text\",\"id\":9326,\"date\":\"2025-09-26 13:13:10+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я в понидельник можешь приехать)\"},{\"type\":\"text\",\"id\":9327,\"date\":\"2025-09-26 13:13:21+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"я боюсь ехать\"},{\"type\":\"text\",\"id\":9328,\"date\":\"2025-09-26 13:13:33+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"я там не была\"},{\"type\":\"voice\",\"duration\":7,\"mime_type\":\"audio/ogg\",\"transcript\":\"Онлайн пусть, ничего страшного не будет, я буду всегда поддерживать онлайн, и, там, подвезу ещё тебя, встречу, там, точку тебе дам.\",\"id\":9329,\"date\":\"2025-09-26 13:13:45+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\"},{\"type\":\"voice\",\"duration\":3,\"mime_type\":\"audio/ogg\",\"transcript\":\"Ну зато побудешь, не бойся, я тебя буду поддерживать.\",\"id\":9330,\"date\":\"2025-09-26 13:14:06+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\"},{\"type\":\"text\",\"id\":9334,\"date\":\"2025-09-26 13:16:46+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"а где я там могу остановиться?\"},{\"type\":\"text\",\"id\":9335,\"date\":\"2025-09-26 13:17:17+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Да\"},{\"type\":\"text\",\"id\":9336,\"date\":\"2025-09-26 13:17:34+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Есть номер в Бурини в Конотопе\"},{\"type\":\"text\",\"id\":9337,\"date\":\"2025-09-26 13:17:41+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Все рядом\"},{\"type\":\"text\",\"id\":9338,\"date\":\"2025-09-26 13:17:54+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я же буду стобой как приедишь)\"},{\"type\":\"text\",\"id\":9339,\"date\":\"2025-09-26 13:18:24+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Не боялась не чего\"},{\"type\":\"text\",\"id\":9340,\"date\":\"2025-09-26 13:18:28+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"а тебе там долго нужно жить?\"},{\"type\":\"text\",\"id\":9341,\"date\":\"2025-09-26 13:18:40+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Целый год\"},{\"type\":\"text\",\"id\":9342,\"date\":\"2025-09-26 13:18:47+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"График 5/5\"},{\"type\":\"text\",\"id\":9343,\"date\":\"2025-09-26 13:19:43+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Кинь пару фото)\"},{\"type\":\"text\",\"id\":9345,\"date\":\"2025-09-26 14:10:37+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Красивая )))🤗\"},{\"type\":\"text\",\"id\":9346,\"date\":\"2025-09-26 14:10:44+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Кинь еще ))\"},{\"type\":\"text\",\"id\":9347,\"date\":\"2025-09-26 14:17:49+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Ты здесь ?)\"},{\"type\":\"text\",\"id\":9349,\"date\":\"2025-09-26 14:41:06+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Вау красиво очень 😍\"},{\"type\":\"text\",\"id\":9350,\"date\":\"2025-09-26 14:41:47+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Как картину на рисовали очень красивую )\"},{\"type\":\"text\",\"id\":9351,\"date\":\"2025-09-26 14:41:50+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"😍\"},{\"type\":\"text\",\"id\":9352,\"date\":\"2025-09-26 14:42:30+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Спасибо большое\"},{\"type\":\"text\",\"id\":9353,\"date\":\"2025-09-26 14:42:34+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Кинь еще )\"},{\"type\":\"text\",\"id\":9354,\"date\":\"2025-09-26 14:42:41+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"В понедельник будешь ?)\"},{\"type\":\"text\",\"id\":9355,\"date\":\"2025-09-26 14:42:54+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Ждать )\"},{\"type\":\"text\",\"id\":9356,\"date\":\"2025-09-26 14:43:20+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"хватит пока с тебя)\"},{\"type\":\"text\",\"id\":9357,\"date\":\"2025-09-26 14:43:29+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"чтобы не потерял сознание\"},{\"type\":\"text\",\"id\":9358,\"date\":\"2025-09-26 14:43:30+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Одну пожалуйста ☺️\"},{\"type\":\"text\",\"id\":9359,\"date\":\"2025-09-26 14:43:33+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"от моей красоты\"},{\"type\":\"text\",\"id\":9360,\"date\":\"2025-09-26 14:43:34+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Хах\"},{\"type\":\"text\",\"id\":9361,\"date\":\"2025-09-26 14:44:14+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Жду )) воздержусь ))\"},{\"type\":\"voice\",\"duration\":3,\"mime_type\":\"audio/ogg\",\"transcript\":\"Да, что такое? Что случилось?\",\"id\":9363,\"date\":\"2025-09-26 14:57:56+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\"},{\"type\":\"voice\",\"duration\":5,\"mime_type\":\"audio/ogg\",\"transcript\":\"Ну я не могу тебе пока ничего обещать касательно моего приезда, понимаешь?\",\"id\":9364,\"date\":\"2025-09-26 14:58:16+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\"},{\"type\":\"text\",\"id\":9365,\"date\":\"2025-09-26 14:58:43+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Понимаю\"},{\"type\":\"text\",\"id\":9366,\"date\":\"2025-09-26 14:58:49+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Что ты ценишь в девушках?\"},{\"type\":\"text\",\"id\":9367,\"date\":\"2025-09-26 14:59:36+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Верность Честность уважиени\"},{\"type\":\"voice\",\"duration\":143,\"mime_type\":\"audio/ogg\",\"transcript\":\"называется Ну, я, например, ценю в парнях, а если брать на основе моих прошлых отношений, где я постоянно тянула парня вверх, чтобы он развивался и помогал ему во всём. Ну, и отношения начались у нас, в принципе, достаточно-таки быстро, и я потом чуть пожалела, что только времени потратила на него. Хотя у меня были предложения постоянные это выйти замуж сразу же, и вообще ни о чём не париться. Но исходя из того, что я довольно-таки не с простой семьи. Ну и в целом, в последнее время стала как-то больше ценить в парнях дальновидность, когда парень вот может, но не просто мыслить, знаешь, там одну-две встречи вперёд, авось прокатит, авось рискну и будет искра буря безумия. А как поют в группе ЛСП. Угу. Ну и ценю, когда парень может мыслить, но не просто там, ну, встретимся на одну-две встречи или там, ну, мы встретимся, и это сразу будет будет какие-то просто обычные встречи без определённого развития. А Вообще, нужно мыслить так, что могут быть вообще долгосрочные отношения. Ну, типа должен мыслить так человек по мне, типа это могут быть отношения, возможно, дружеские, партнёрские, а-а, любовные, романтические, ну, то есть много, да, вариаций. Если человек, в принципе, ммм, как личность интересный, то с ним можно выстраивать разные форматы отношений. И это будет в плюс для обоих сторон. То есть это не будет так, что если мы там с тобой, да, условно, повстречались, э-э, погодика, для романтика, а-а, какого-то, и потом посрёмся и разойдёмся, как это обычно бывает у людей, да? Мне интересно вот конкретно, если я вложила своё время в любые отношения, а-а, то, чтобы это было надолго. И ладно, если бы, хмм, я не могла ничего дать парню, как обычные простушки какие-то. Но тут совсем другая история.\",\"id\":9370,\"date\":\"2025-09-26 15:03:14+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\"},{\"type\":\"voice\",\"duration\":107,\"mime_type\":\"audio/ogg\",\"transcript\":\"Да и в целом я верю, что настоящая любовь вообще и чувства просыпаются обычно в ситуациях. Вот должна быть какая-то ситуация, интересный какой-то сценарий, а чтобы была совместная искра, да? И чтобы было приятно, скажем так, обоим. А не так, что кто-то влюбился, а кто-то нет. Вот я за то, чтобы была взаимность. И я думаю, что лично у меня сейчас нет времени, как-то, знаешь, доверять каждому на слово. И теперь я оцениваю только действия и ценю, когда парень прямо любит пробовать, знаешь, что-то новое. Вот находчивых парней тоже очень не хватает сейчас. То есть я ценю находчивость. Такое вот качество и не люблю вечно сомневающихся в себе, про не- и ждущих какой-то манны с неба, что всё упадет на них ниоткуда. А также ценю инициативность и способность решить сложные задачи, а вместо того, чтобы ждать, пока я, да, это сделаю вот за них. Я вот ценю ещё богатство в уме. Это, ну, не про деньги, а просто когда человек не мелочится.\",\"id\":9371,\"date\":\"2025-09-26 15:05:50+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\"},{\"type\":\"text\",\"id\":9372,\"date\":\"2025-09-26 20:44:48+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я стобой согласен\"},{\"type\":\"text\",\"id\":9373,\"date\":\"2025-09-27 04:37:39+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Добрый ранок)\"},{\"type\":\"text\",\"id\":9375,\"date\":\"2025-09-27 04:37:59+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я жду нашей встречи)\"},{\"type\":\"text\",\"id\":9377,\"date\":\"2025-09-27 09:44:23+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"И часто мало знакомые девушки\"},{\"type\":\"text\",\"id\":9378,\"date\":\"2025-09-27 09:44:28+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Все кидают\"},{\"type\":\"text\",\"id\":9379,\"date\":\"2025-09-27 09:44:35+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"И едут к тебе\"},{\"type\":\"text\",\"id\":9380,\"date\":\"2025-09-27 09:44:42+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Неизвестно куди?)\"},{\"type\":\"text\",\"id\":9383,\"date\":\"2025-09-27 14:25:00+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Нет\"},{\"type\":\"text\",\"id\":9384,\"date\":\"2025-09-27 14:25:16+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я так не прошу\"},{\"type\":\"text\",\"id\":9385,\"date\":\"2025-09-27 14:25:31+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Чем занимаешься ?₽\"},{\"type\":\"text\",\"id\":9386,\"date\":\"2025-09-27 14:25:36+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Привет)\"},{\"type\":\"text\",\"id\":9387,\"date\":\"2025-09-27 14:27:25+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я особо не доверяю девушкам разнице кидают  розчерование иногда есть (\"},{\"type\":\"text\",\"id\":9388,\"date\":\"2025-09-27 14:27:59+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Кинь еще пару фото ))\"},{\"type\":\"text\",\"id\":9389,\"date\":\"2025-09-27 14:28:13+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"У меня нету настроения\"},{\"type\":\"text\",\"id\":9390,\"date\":\"2025-09-27 14:28:17+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Сегодня\"},{\"type\":\"text\",\"id\":9391,\"date\":\"2025-09-27 14:28:30+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Я поссорилась с мамой\"},{\"type\":\"text\",\"id\":9392,\"date\":\"2025-09-27 14:28:41+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Ааааа\"},{\"type\":\"text\",\"id\":9393,\"date\":\"2025-09-27 14:28:51+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Не переживай\"},{\"type\":\"text\",\"id\":9394,\"date\":\"2025-09-27 14:29:06+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Не поняла?\"},{\"type\":\"text\",\"id\":9395,\"date\":\"2025-09-27 14:29:13+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Помирешься\"},{\"type\":\"text\",\"id\":9396,\"date\":\"2025-09-27 14:29:25+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Оно то да\"},{\"type\":\"text\",\"id\":9397,\"date\":\"2025-09-27 14:29:34+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Но неприятно как-то на душе\"},{\"type\":\"text\",\"id\":9398,\"date\":\"2025-09-27 14:29:51+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Помнишь я тебе рассказывала\"},{\"type\":\"text\",\"id\":9399,\"date\":\"2025-09-27 14:29:53+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я тоже с мамой иногда ссорюсь\"},{\"type\":\"text\",\"id\":9400,\"date\":\"2025-09-27 14:29:54+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"О жизни\"},{\"type\":\"text\",\"id\":9401,\"date\":\"2025-09-27 14:29:56+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Гс?\"},{\"type\":\"text\",\"id\":9402,\"date\":\"2025-09-27 14:30:05+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Помириться быстро\"},{\"type\":\"text\",\"id\":9403,\"date\":\"2025-09-27 14:30:08+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Что и там все не просто сейчас у меня\"},{\"type\":\"text\",\"id\":9404,\"date\":\"2025-09-27 14:30:20+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я с мамой ретко общаюсь )\"},{\"type\":\"text\",\"id\":9405,\"date\":\"2025-09-27 14:30:33+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Давай поговорим)\"},{\"type\":\"text\",\"id\":9406,\"date\":\"2025-09-27 14:32:52+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"?\"},{\"type\":\"text\",\"id\":9407,\"date\":\"2025-09-27 14:33:04+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"В 21 смогу поговорить\"},{\"type\":\"text\",\"id\":9408,\"date\":\"2025-09-27 14:33:09+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Уделить время\"},{\"type\":\"text\",\"id\":9426,\"date\":\"2025-09-27 17:05:10+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Да)\"},{\"type\":\"text\",\"id\":9427,\"date\":\"2025-09-27 17:05:17+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я жду ))\"},{\"type\":\"text\",\"id\":9428,\"date\":\"2025-09-27 18:05:05+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Сейчас наберу\"},{\"type\":\"text\",\"id\":9429,\"date\":\"2025-09-27 18:13:33+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Готов ?\"},{\"type\":\"text\",\"id\":9430,\"date\":\"2025-09-27 18:19:57+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Да могу )\"},{\"type\":\"text\",\"id\":9450,\"date\":\"2025-09-28 11:48:31+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Как ты там?\"},{\"type\":\"text\",\"id\":9451,\"date\":\"2025-09-28 11:52:56+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Привет))\"},{\"type\":\"text\",\"id\":9452,\"date\":\"2025-09-28 11:53:04+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я могу поговорить стобой ))\"},{\"type\":\"text\",\"id\":9453,\"date\":\"2025-09-28 11:53:14+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Не давно проснулся)\"},{\"type\":\"text\",\"id\":9455,\"date\":\"2025-09-28 11:53:35+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Та подожди не успела ответить 😅\"},{\"type\":\"text\",\"id\":9456,\"date\":\"2025-09-28 11:53:58+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Нормально ты так спиш….\"},{\"type\":\"text\",\"id\":9457,\"date\":\"2025-09-28 11:54:09+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Поздно уснул?\"},{\"type\":\"text\",\"id\":9458,\"date\":\"2025-09-28 11:54:38+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я 12 часо отработал литал с 18:00 до 6:00\"},{\"type\":\"text\",\"id\":9459,\"date\":\"2025-09-28 11:54:53+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Ого\"},{\"type\":\"text\",\"id\":9460,\"date\":\"2025-09-28 11:54:55+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я сам так захотел\"},{\"type\":\"text\",\"id\":9461,\"date\":\"2025-09-28 11:55:02+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Весело было ))\"},{\"type\":\"text\",\"id\":9465,\"date\":\"2025-09-28 12:01:27+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Блин\"},{\"type\":\"text\",\"id\":9466,\"date\":\"2025-09-28 12:01:34+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"А мне так плохо сегодня\"},{\"type\":\"text\",\"id\":9467,\"date\":\"2025-09-28 12:01:54+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"С кровати даже тяжело сегодня вставать\"},{\"type\":\"text\",\"id\":9469,\"date\":\"2025-09-28 13:36:06+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Тривога не выспалась (\"},{\"type\":\"text\",\"id\":9470,\"date\":\"2025-09-28 13:36:27+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я привык ковсему\"},{\"type\":\"text\",\"id\":9475,\"date\":\"2025-09-28 16:23:55+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"ага\"},{\"type\":\"text\",\"id\":9477,\"date\":\"2025-09-28 17:28:12+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Спишь?\"},{\"type\":\"text\",\"id\":9478,\"date\":\"2025-09-29 02:29:20+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Добрый ранок ))\"},{\"type\":\"text\",\"id\":9491,\"date\":\"2025-09-29 12:16:05+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Привет\"},{\"type\":\"text\",\"id\":9493,\"date\":\"2025-09-29 12:16:54+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Приевет)\"},{\"type\":\"text\",\"id\":9494,\"date\":\"2025-09-29 12:16:58+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"🥰\"},{\"type\":\"text\",\"id\":9495,\"date\":\"2025-09-29 12:17:05+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Как ты?\"},{\"type\":\"text\",\"id\":9497,\"date\":\"2025-09-29 12:17:26+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Чем занимаешься?\"},{\"type\":\"text\",\"id\":9498,\"date\":\"2025-09-29 12:17:37+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"ну занята наверное\"},{\"type\":\"text\",\"id\":9499,\"date\":\"2025-09-29 12:19:22+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"у меня все зависло\"},{\"type\":\"text\",\"id\":9500,\"date\":\"2025-09-29 13:10:48+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"после твоего звонка\"},{\"type\":\"text\",\"id\":9501,\"date\":\"2025-09-29 13:11:17+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Понедельник день ….\"},{\"type\":\"text\",\"id\":9502,\"date\":\"2025-09-29 13:11:27+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Работаю\"},{\"type\":\"text\",\"id\":9503,\"date\":\"2025-09-29 13:11:29+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"А ты?\"},{\"type\":\"text\",\"id\":9682,\"date\":\"2025-10-05 10:29:09+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Привет)\"},{\"type\":\"text\",\"id\":9684,\"date\":\"2025-10-06 11:38:53+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Привет\"},{\"type\":\"text\",\"id\":9685,\"date\":\"2025-10-06 11:39:19+00:00\",\"from_id\":8203479406,\"sender_role\":\"manager\",\"text\":\"Пропал ты куда-то\"},{\"type\":\"text\",\"id\":9692,\"date\":\"2025-10-06 16:35:41+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Я сейчас на службе\"},{\"type\":\"text\",\"id\":9693,\"date\":\"2025-10-06 16:35:48+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Спал целый день\"},{\"type\":\"text\",\"id\":9694,\"date\":\"2025-10-06 16:35:53+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"А ты как !\"},{\"type\":\"text\",\"id\":9695,\"date\":\"2025-10-06 16:35:56+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"?\"},{\"type\":\"text\",\"id\":9696,\"date\":\"2025-10-06 16:36:23+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Когда  сможешь приехать  в буринь сумську область\"},{\"type\":\"text\",\"id\":9699,\"date\":\"2025-10-07 04:31:43+00:00\",\"from_id\":338216406,\"sender_role\":\"lead\",\"text\":\"Добрый ранок)\"}]},\"added_by\":8203479406,\"full_name\":\"Саша Громов\",\"source\":\"6\",\"comments\":null},\"source\":\"Badoo\"}}"
+          }
+        }
+      }
+    ]
+  },
+  "versionId": "b996eb79-a5f4-483c-b1e9-0d6c317857b0",
+  "activeVersionId": "b996eb79-a5f4-483c-b1e9-0d6c317857b0",
+  "versionCounter": 3,
+  "triggerCount": 0,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2025-08-31T16:05:37.568Z",
+      "createdAt": "2025-08-31T16:05:37.568Z",
+      "role": "workflow:owner",
+      "workflowId": "pw7Ze2ZHxx563Qpo",
+      "projectId": "otThis0Dzllfqt7v",
+      "project": {
+        "updatedAt": "2025-08-20T18:30:26.018Z",
+        "createdAt": "2025-08-20T18:23:04.813Z",
+        "id": "otThis0Dzllfqt7v",
+        "name": "Ada Sales <dragmastery@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "b0f4cf25-2d4a-4614-b225-fe05addaa1fc"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

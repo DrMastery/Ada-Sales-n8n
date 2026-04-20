@@ -1,0 +1,140 @@
+{
+  "updatedAt": "2025-10-10T11:43:21.335Z",
+  "createdAt": "2025-09-02T12:42:36.972Z",
+  "id": "rDSvopacgwtGYSPn",
+  "name": "Lead: show card DELETE",
+  "description": null,
+  "active": true,
+  "isArchived": true,
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "manager",
+              "type": "object"
+            },
+            {
+              "name": "telegram",
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -352,
+        -48
+      ],
+      "id": "fb0f930e-77cd-4d81-a55c-64aac721ad4e",
+      "name": "When Executed by Another Workflow"
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "manager": {
+            "id": 8316205217,
+            "created_at": "2025-08-31T16:50:48.673932+00:00",
+            "updated_at": "2025-08-31T16:50:48.673932",
+            "tg_username": "Amina_raii",
+            "first_name": "Amina",
+            "last_name": "S",
+            "role": "manager",
+            "status": "active",
+            "api_id": 25306690,
+            "api_hash": "d67dfca70f90b052b1f29709c52fbf44",
+            "string_session": "1ApWapzMBuwM9vEBXOHw74xUI3V59q1snBhn9q4_PO6_wzNVzUZmt4k9U02LRUCgHv3eS2N7fHXMsTNBUilqlUpbUhi_ip-GWP9gvtQclICeacJTYDOs-r2z-W_0ynmxnz6V3QRJgeuo3WWsuWYTV0oH3CoP_OIw9uI4hwDZwG8XfYGmg0s7PzahM30xNVqmRMfGUi4Sr4szkkdeM0THWUH5siXk4D8U-A7YG0fWrUkw-FDd4iUNuc9cHEHG3pRTYoRCSSX_FpshMDu46L7bnwPnUfnI_WQMcf3dqElUFD9XbFr7MXWlendFRCtrI6VCahMLmFHsWpDDWZ9HHtRuX7L4U4WIa-tU=",
+            "phone": "+380998234415",
+            "proxy_ip": "5.22.206.144",
+            "proxy_port": 59100,
+            "proxy_login": "dabstep4enko",
+            "proxy_password": "FjGhduJaEN",
+            "state": null,
+            "last_tg_api_call_at": null,
+            "state_data": null
+          },
+          "telegram": {
+            "json": {
+              "update_id": 502822881,
+              "message": {
+                "message_id": 1912,
+                "from": {
+                  "id": 8316205217,
+                  "is_bot": false,
+                  "first_name": "Amina",
+                  "last_name": "S",
+                  "username": "Amina_raii",
+                  "language_code": "en"
+                },
+                "chat": {
+                  "id": 8316205217,
+                  "first_name": "Amina",
+                  "last_name": "S",
+                  "username": "Amina_raii",
+                  "type": "private"
+                },
+                "date": 1756825919,
+                "text": "/show_lead_card",
+                "entities": [
+                  {
+                    "offset": 0,
+                    "length": 15,
+                    "type": "bot_command"
+                  }
+                ]
+              }
+            },
+            "pairedItem": {
+              "item": 0
+            }
+          },
+          "generated_by_AI": null
+        }
+      }
+    ]
+  },
+  "versionId": "b3e8a469-9b52-4592-ab64-a541fe3898c2",
+  "activeVersionId": "b3e8a469-9b52-4592-ab64-a541fe3898c2",
+  "versionCounter": 3,
+  "triggerCount": 0,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2025-09-02T12:42:36.972Z",
+      "createdAt": "2025-09-02T12:42:36.972Z",
+      "role": "workflow:owner",
+      "workflowId": "rDSvopacgwtGYSPn",
+      "projectId": "otThis0Dzllfqt7v",
+      "project": {
+        "updatedAt": "2025-08-20T18:30:26.018Z",
+        "createdAt": "2025-08-20T18:23:04.813Z",
+        "id": "otThis0Dzllfqt7v",
+        "name": "Ada Sales <dragmastery@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "b0f4cf25-2d4a-4614-b225-fe05addaa1fc"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

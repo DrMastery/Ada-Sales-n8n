@@ -1,0 +1,198 @@
+{
+  "updatedAt": "2025-10-10T09:00:34.262Z",
+  "createdAt": "2025-10-10T08:57:25.342Z",
+  "id": "qKIpGHZJyoY3LlLL",
+  "name": "Transcribe audio -> init",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "manager",
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -432,
+        -96
+      ],
+      "id": "2e3be3b2-b4de-4290-98c1-0a1c258d0989",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "tg_accounts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('When Executed by Another Workflow').item.json.manager.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "state",
+              "fieldValue": "=transcribe_audio__start"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        -96
+      ],
+      "id": "80dc8939-9461-4500-ac9a-0dfb0e30b3e5",
+      "name": "Update state: transcribe_audio__start",
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by Another Workflow').item.json.manager.id }}",
+        "text": "=Продиктуйте голосовое сообщение или добавьте аудиофайл.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        -96
+      ],
+      "id": "57f6ed86-70b5-47cf-a2dc-5b37b7809764",
+      "name": "Send text: attach audio",
+      "webhookId": "e9f4ce0e-7b53-44c1-921f-bfc13fed4dd3",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Update state: transcribe_audio__start",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update state: transcribe_audio__start": {
+      "main": [
+        [
+          {
+            "node": "Send text: attach audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "manager": {
+            "id": 8316205217,
+            "created_at": "2025-09-02T15:49:24.919184+00:00",
+            "updated_at": "2025-09-02T15:49:24.919184",
+            "tg_username": "Amina_raii",
+            "first_name": "Amina",
+            "last_name": "S",
+            "role": "manager",
+            "status": "active",
+            "api_id": 25306690,
+            "api_hash": "d67dfca70f90b052b1f29709c52fbf44",
+            "string_session": "1ApWapzMBux6F7Xv_aTQCpvXoiYuiWro3RsdMJfJb8h2YOyVATfetZYUJA5x73jfXJOhVV9ZF6pCUa9cxmZHFrRKHCjSWTVThJkeTWFlP0qtCimeiQVXZvkkbnUQa5sWhDDUTVqRAWYR__QUh0KdEOXf-2eaOlN_OChnaXgQF4KdHoSTfjexkigQAbZez5k2IMNS4JVC1nbPRgx3kfLqGqhuHOMRfzrqfUfGRBm_YVwXm7_ef-JwLW1OHnl8JMTbdo3i0zUpyodd5oDPydOI-hbxQPM97lAyIMEIpG8g-dB5gn2PRjq6rNYcebIIMg2LUra6EyY-DUylFZEnGY0IAXLJx9Hptd5c=",
+            "phone": "+380998234415",
+            "proxy_ip": "5.22.206.144",
+            "proxy_port": 59100,
+            "proxy_login": "dabstep4enko",
+            "proxy_password": "FjGhduJaEN",
+            "state": "create_lead__name_input",
+            "last_tg_api_call_at": null,
+            "state_data": null
+          },
+          "telegram": {
+            "message_id": 1977,
+            "from": {
+              "id": 8316205217,
+              "is_bot": false,
+              "first_name": "Amina",
+              "last_name": "S",
+              "username": "Amina_raii",
+              "language_code": "en"
+            },
+            "chat": {
+              "id": 8316205217,
+              "first_name": "Amina",
+              "last_name": "S",
+              "username": "Amina_raii",
+              "type": "private"
+            },
+            "date": 1756828485,
+            "text": "Vladyslav Hleb"
+          }
+        }
+      }
+    ]
+  },
+  "versionId": "fdcd3c23-7c12-4c7e-a6bd-ece8c0cf04e8",
+  "activeVersionId": "fdcd3c23-7c12-4c7e-a6bd-ece8c0cf04e8",
+  "versionCounter": 3,
+  "triggerCount": 0,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2025-10-10T08:57:25.342Z",
+      "createdAt": "2025-10-10T08:57:25.342Z",
+      "role": "workflow:owner",
+      "workflowId": "qKIpGHZJyoY3LlLL",
+      "projectId": "otThis0Dzllfqt7v",
+      "project": {
+        "updatedAt": "2025-08-20T18:30:26.018Z",
+        "createdAt": "2025-08-20T18:23:04.813Z",
+        "id": "otThis0Dzllfqt7v",
+        "name": "Ada Sales <dragmastery@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "b0f4cf25-2d4a-4614-b225-fe05addaa1fc"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

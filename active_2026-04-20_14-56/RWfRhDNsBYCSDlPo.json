@@ -1,0 +1,3282 @@
+{
+  "updatedAt": "2025-10-10T16:23:03.512Z",
+  "createdAt": "2025-08-20T18:35:27.338Z",
+  "id": "RWfRhDNsBYCSDlPo",
+  "name": "Master",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "*"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -608,
+        -896
+      ],
+      "id": "3fb98c1d-93a8-4da8-b7c2-a5386c0f3b43",
+      "name": "Telegram Trigger",
+      "webhookId": "3414c149-f02e-45ee-82cf-2a331b854f0c",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message?.text === \"/start\"}}",
+                    "rightValue": "/start",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "df3c0699-8126-49a9-9d34-5afe57feb4d5"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "/start"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e80eab18-437c-41a4-bd77-35b177ed4e3c",
+                    "leftValue": "={{ $('Telegram Trigger').item.json.callback_query?.data || null }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Callback?"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "3a543603-7f18-4f1f-ad4b-115a69c875e5",
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message?.text || null }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Text?"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "c79f2604-f137-4777-98f1-9efb97ad0edf",
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message?.voice || null }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "object",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Voice?"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "58dbba27-7194-4449-9e57-a8c0bb115f37",
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message?.audio || null }}",
+                    "rightValue": "Audio?",
+                    "operator": {
+                      "type": "object",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Audio?"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "475051fc-ae5d-4e52-bb89-554766dd86c0",
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message?.document || null }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "object",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Document?"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        64,
+        -960
+      ],
+      "id": "2cebfda7-4533-4204-bad8-5228dc2a89ed",
+      "name": "Switch triggers",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "zPLVnNxBmYOKydt7",
+          "mode": "list",
+          "cachedResultName": "New User"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "telegram": "={{ $('Telegram Trigger').item.json }}"
+          },
+          "matchingColumns": [
+            "telegram"
+          ],
+          "schema": [
+            {
+              "id": "telegram",
+              "displayName": "telegram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        288,
+        -1040
+      ],
+      "id": "5ddd2c4d-cf5f-42d2-95ed-2d751b349dde",
+      "name": "Execute \"New User\""
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "tg_accounts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "keyValue": "={{ $('Telegram Trigger').item.json.message.from.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        288,
+        32
+      ],
+      "id": "693e32d7-22aa-400b-a332-2ba18a908eb9",
+      "name": "Get user: from text",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "tg_accounts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "keyValue": "={{ $json.callback_query.from.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        288,
+        -848
+      ],
+      "id": "95d02cf9-5231-4986-85a6-9314f708fb6c",
+      "name": "Get user: from calback",
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "c670331f-4b34-4357-9886-4f1d2fe31453",
+                    "leftValue": "={{ $('Get user: from calback').item.json.role }}",
+                    "rightValue": "manager",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "manager"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b481df8a-4091-450c-9182-ad2bd74ddee3",
+                    "leftValue": "={{ $('Get user: from calback').item.json.role }}",
+                    "rightValue": "expert",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "expert"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Get user: from calback').item.json.role }}",
+                    "rightValue": "=super_admin",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "d9ec716c-7dd2-4ef9-bdc8-c9452733e561"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "super user"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        736,
+        -864
+      ],
+      "id": "32c94c91-2aad-4a9e-8bce-1619cafed28f",
+      "name": "Switch user: from calback"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.role }}",
+                    "rightValue": "=super_admin",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "d9ec716c-7dd2-4ef9-bdc8-c9452733e561"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "super user"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "814bc096-d151-4175-b33a-5335b1e70dd1",
+                    "leftValue": "={{ $json.role }}",
+                    "rightValue": "manager",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "manager"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "9c8f25c7-8d59-4fd0-a633-cfba8f9008bd",
+                    "leftValue": "={{ $json.role }}",
+                    "rightValue": "expert",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "expert"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        736,
+        16
+      ],
+      "id": "0c1deb8b-a2bb-4481-90a3-705ed8b1530f",
+      "name": "Switch user: from text"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "MmNoWmYauOW0scUd",
+          "mode": "list",
+          "cachedResultName": "Admin Register New Account"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "telegram": "={{ $('Telegram Trigger').item.json }}"
+          },
+          "matchingColumns": [
+            "telegram"
+          ],
+          "schema": [
+            {
+              "id": "telegram",
+              "displayName": "telegram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        960,
+        -272
+      ],
+      "id": "ba6ceaaa-a328-42a2-a1a7-ed21ebb21a65",
+      "name": "Execute \"Admin Register New Account\""
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d95e61f1-276e-4b4d-afbc-3181ef383a3e",
+              "leftValue": "={{ $('Get user: from calback').item.json.status }}",
+              "rightValue": "active",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        512,
+        -848
+      ],
+      "id": "341f3f76-3c52-4e8d-9430-c1b01a89dfb4",
+      "name": "If active user from callback?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d95e61f1-276e-4b4d-afbc-3181ef383a3e",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "active",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        512,
+        32
+      ],
+      "id": "122358b3-18eb-460a-9550-e6e353a2f3f1",
+      "name": "If active user from text?"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message?.text }}",
+                    "rightValue": "=/create_lead",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    },
+                    "id": "df3c0699-8126-49a9-9d34-5afe57feb4d5"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "/create_lead"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "0c66763c-081b-4ab3-b396-5f3507e2a695",
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message?.text }}",
+                    "rightValue": "/add_new_chats",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "/add_new_chats"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ab134671-5712-44a3-bf41-7bc1deb8beb1",
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message?.text }}",
+                    "rightValue": "/move_to_discard",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "/move_to_discard"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "d680ad18-4a0a-4c83-b4a6-179e75f99141",
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message?.text }}",
+                    "rightValue": "/move_to_ignore",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "/move_to_ignore"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "1f257dbf-0020-472d-979b-2f34ed3fdf56",
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message?.text }}",
+                    "rightValue": "/add_comment",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "/add_comment"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "aad8600c-4ab3-44ab-ad32-4193a2f30d14",
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message?.text }}",
+                    "rightValue": "/show_lead_card",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "/show_lead_card"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "f19cfb45-7cde-4595-a9e2-b650c29344df",
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message?.text }}",
+                    "rightValue": "/add_one_new_chat",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "/add_one_new_chat"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a6d00251-3243-4a2d-b9a0-1a314e73b953",
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message?.text }}",
+                    "rightValue": "=/transcribe_audio",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "/transcribe_audio"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "d70ea409-2963-4a01-be18-786c19ccbf30",
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message?.text }}",
+                    "rightValue": "/generate_finance_segmentation",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "/generate_finance_segmentation"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "8aedba54-b2e8-4316-9608-890654d54ab2",
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message?.text }}",
+                    "rightValue": "/generate_full_segmentation",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "/generate_full_segmentation"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "9815800f-899f-4eb3-8ef0-b6ed87e2035e",
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message?.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "3d2fdcd4-cbc3-47a0-8b8f-edf18714c6ca",
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message?.voice }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "object",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Voice"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "d2ebe7e5-1a7e-4f88-a18e-0981b89d9794",
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message?.audio }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "object",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Audio"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "bf9a5c1f-d0c7-4a07-b86d-501961d6e2cb",
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message?.document }}",
+                    "rightValue": "Document",
+                    "operator": {
+                      "type": "object",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Document"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        960,
+        -80
+      ],
+      "id": "f3563e1f-c897-4461-beac-1cd3277fe8c7",
+      "name": "Text from manager"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "tZekKdw7eD8UGiV4",
+          "mode": "list",
+          "cachedResultName": "Lead: enter name or username"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1184,
+        -464
+      ],
+      "id": "2ef43e40-1ff4-439d-8430-e517887df8c9",
+      "name": "Execute \"Create Lead Card: init\""
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "tg_accounts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "keyValue": "={{ $('Get user: from text').item.json.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1184,
+        1456
+      ],
+      "id": "95a3d750-ddb3-411d-b727-069c3340d646",
+      "name": "Get state",
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "gr5ZfdGv0eKzOhmr",
+          "mode": "list",
+          "cachedResultName": "News Leads: move new chats to NEW folder"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1184,
+        -272
+      ],
+      "id": "a7dd21d4-de67-46d7-8cab-9f1090cc629b",
+      "name": "Execute \"Add new leads to folder NEW\""
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Telegram Trigger').item.json.callback_query.data }}",
+                    "rightValue": "create_lead__finish",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    },
+                    "id": "8ce58604-4a97-4ce4-9a6e-8b6137d4feec"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "create_lead__save_in_crm"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "0b9316d7-cc44-4054-8db6-18e2a6b09d64",
+                    "leftValue": "={{ $('Telegram Trigger').item.json.callback_query.data }}",
+                    "rightValue": "create_lead__message_to_add_source",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "create_lead__message_to_add_source"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "7fcb2293-6911-4d0d-9e5b-ad4348638dcf",
+                    "leftValue": "={{ $('Telegram Trigger').item.json.callback_query.data }}",
+                    "rightValue": "lead_source__",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "lead_source__"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        960,
+        -864
+      ],
+      "id": "fc7700b6-69ce-48be-b09c-ca1b6f719190",
+      "name": "Switch: manager callback"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "pw7Ze2ZHxx563Qpo",
+          "mode": "list",
+          "cachedResultName": "Lead: create card to CRM using AI"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "manager": "={{ $('Get user: from calback').item.json }}",
+            "telegram": "={{ $('Telegram Trigger').item.json }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "manager",
+              "displayName": "manager",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "telegram",
+              "displayName": "telegram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1184,
+        -1040
+      ],
+      "id": "23185322-ef51-4ce9-bdc5-9b477cdfb68f",
+      "name": "Execute Workflow \"create card to CRM using AI\""
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "70aJsYfF59QweGwF",
+          "mode": "list",
+          "cachedResultName": "Lead: find lead for card"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "manager": "={{ $('Get user: from text').item.json }}",
+            "telegram": "={{ $('Telegram Trigger').item.json.message }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "manager",
+              "displayName": "manager",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            },
+            {
+              "id": "telegram",
+              "displayName": "telegram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1632,
+        16
+      ],
+      "id": "73df2418-77bd-46d7-be97-9a1409452aa5",
+      "name": "Execute \"Lead: enter name\""
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "tg_accounts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Switch: manager callback').item.json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "state",
+              "fieldValue": "create_lead__choose_source"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1184,
+        -848
+      ],
+      "id": "a36a63fa-8109-486a-802b-fccb4991432a",
+      "name": "Update state: create_lead__enter_source",
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT title FROM mb592658_adadb.rise_lead_source;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        1408,
+        -848
+      ],
+      "id": "92ac29b7-fdd0-4bac-b694-4153fe4db79a",
+      "name": "Get sources",
+      "credentials": {
+        "mySql": {
+          "id": "hWvHOF51fBsx3NA3",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const chatId = $('Update state: create_lead__enter_source').first().json.id\n\nconst dataJson = $(\"Get sources\").all().map(item => item.json);\n\nconst inline_keyboard = dataJson.map(item => [\n  { text: item.title, callback_data: `lead_source__${item.title}` }\n]);\n\n\nreturn [\n  {\n    json: {\n      chat_id: chatId,\n      text: \"Выберите источник лида 👇\",\n      reply_markup: {\n        inline_keyboard\n      }\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1632,
+        -848
+      ],
+      "id": "6520756e-cf8f-44f8-bd77-3fcd66515ecd",
+      "name": "Get json with inline keyboard: lead sources"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot8176986442:AAGgF7QPa5wYqxeBaN0WDDW9mxelZdv9KO4/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1856,
+        -848
+      ],
+      "id": "3f268288-4c62-40c4-903d-03a5b1e0a81b",
+      "name": "TG message: choose lead source"
+    },
+    {
+      "parameters": {
+        "jsCode": "const obj = $('Switch: manager callback').first().json;\n\nconst stateData = JSON.parse(obj.state_data);\n\nstateData.create_lead.source = $('Telegram Trigger').first().json.callback_query.data.replace(\"lead_source__\", \"\");\n\nobj.state_data = JSON.stringify(stateData);\n\nreturn [\n  {\n    json: obj\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1184,
+        -656
+      ],
+      "id": "0127ae50-7f58-4161-b736-0330e0e562c6",
+      "name": "Update state_data: add lead source"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "pw7Ze2ZHxx563Qpo",
+          "mode": "list",
+          "cachedResultName": "Lead: create card to CRM using AI"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "manager": "={{ $('Update state: add source to state_data').item.json }}",
+            "telegram": "={{ $('Update state: add source to state_data').item.json }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "manager",
+              "displayName": "manager",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "telegram",
+              "displayName": "telegram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1632,
+        -656
+      ],
+      "id": "1e63e1ec-16f4-4036-8784-eff73c98e722",
+      "name": "Execute \"Lead: create -> save lead card"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "tg_accounts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Switch: manager callback').item.json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "state",
+              "fieldValue": "create_lead__saving"
+            },
+            {
+              "fieldId": "state_data",
+              "fieldValue": "={{ $('Update state_data: add lead source').item.json.state_data }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1408,
+        -656
+      ],
+      "id": "19f3dc9f-a7f4-41bc-a7f3-67d5910e91da",
+      "name": "Update state: add source to state_data",
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "63d67a89-291c-45f1-9aa4-0e8253783307",
+              "leftValue": "={{ $('Telegram Trigger').item.json.message?.text || '' }}",
+              "rightValue": "=/",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -384,
+        -896
+      ],
+      "id": "87e0553f-d09d-4845-98f0-f669fb1f9e69",
+      "name": "If command -> reset state in db"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "tg_accounts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Telegram Trigger').item.json.message.from.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "state",
+              "fieldValue": "={{ null }}"
+            },
+            {
+              "fieldId": "state_data",
+              "fieldValue": "={{ null }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        -944
+      ],
+      "id": "68caeda2-a64c-434f-a0db-1954c7701ff2",
+      "name": "Update state: reset",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "pLTs2819uZdtNZXB",
+          "mode": "list",
+          "cachedResultName": "Find lead by user_id or username or user_id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "manager": "={{ $('Get user: from text').item.json }}",
+            "telegram": "={{ $('Telegram Trigger').item.json }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "manager",
+              "displayName": "manager",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "telegram",
+              "displayName": "telegram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1632,
+        208
+      ],
+      "id": "599ade22-aa2b-4231-84a5-7525ff30924b",
+      "name": "Execute \"Find lead by name or username or id for adding comment"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "8cx40WBEaaXty5vr",
+          "mode": "list",
+          "cachedResultName": "Lead: run command to add comment"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "manager": "={{ $('Get user: from text').item.json }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "manager",
+              "displayName": "manager",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1184,
+        304
+      ],
+      "id": "8ce5139e-ff34-4168-acbe-1ca5a73219d9",
+      "name": "Execute \"Lead: add comment -> start\""
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "eBt5ARMoKiydalkN",
+          "mode": "list",
+          "cachedResultName": "Lead: add comment"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "manager": "={{ $('Get user: from text').item.json }}",
+            "telegram": "={{ $('Telegram Trigger').item.json }}",
+            "generated_by_AI": "={{ false }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "manager",
+              "displayName": "manager",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "telegram",
+              "displayName": "telegram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "generated_by_AI",
+              "displayName": "generated_by_AI",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1632,
+        400
+      ],
+      "id": "58472e02-3664-423b-9386-be01d2632f62",
+      "name": "Execute \"Lead: add comment\""
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "PkoJ1JqSVUdg18fQ",
+          "mode": "list",
+          "cachedResultName": "Lead: show card -> enter name..."
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "telegram": "={{ $('Telegram Trigger').item.json }}",
+            "manager": "={{ $('Get user: from text').item.json }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "manager",
+              "displayName": "manager",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "telegram",
+              "displayName": "telegram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1184,
+        496
+      ],
+      "id": "eb09e7d7-9a24-40b6-9609-cd761b73d479",
+      "name": "Execute \"Lead: show card -> enter lead name ...\""
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "YeSVeMkyUo50sysT",
+          "mode": "list",
+          "cachedResultName": "Lead: show card -> find lead"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "manager": "={{ $('Get user: from text').item.json }}",
+            "telegram": "={{ $('Telegram Trigger').item.json }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "manager",
+              "displayName": "manager",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "telegram",
+              "displayName": "telegram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1632,
+        592
+      ],
+      "id": "4dbab20a-0e2e-4096-8dde-959d00b1d4ab",
+      "name": "Execute \"Show Lead: find lead\""
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "TolpSPxcDzJZ5to5",
+          "mode": "list",
+          "cachedResultName": "Lead: move to Discard -> input lead name"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "manager": "={{ $('Get user: from text').item.json }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "manager",
+              "displayName": "manager",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1184,
+        -80
+      ],
+      "id": "74e97d42-e7cd-4d24-8cd5-d917b88f5a6d",
+      "name": "Execute \"Move to DISCARD -> input user name\""
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "JhmThmZJVu4Ak78F",
+          "mode": "list",
+          "cachedResultName": "Lead: change status"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "manager": "={{ $('Get user: from text').item.json }}",
+            "telegram": "={{ $('Telegram Trigger').item.json }}",
+            "to_set_status": "Discard"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "manager",
+              "displayName": "manager",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "telegram",
+              "displayName": "telegram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "to_set_status",
+              "displayName": "to_set_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1632,
+        784
+      ],
+      "id": "36468be1-bcfb-44a3-8c76-e69eb82b5885",
+      "name": "Execute \"Change status: discard\""
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "JhmThmZJVu4Ak78F",
+          "mode": "list",
+          "cachedResultName": "Lead: change status"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "manager": "={{ $('Get user: from text').item.json }}",
+            "telegram": "={{ $('Telegram Trigger').item.json }}",
+            "to_set_status": "Ignore"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "manager",
+              "displayName": "manager",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "telegram",
+              "displayName": "telegram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "to_set_status",
+              "displayName": "to_set_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1632,
+        976
+      ],
+      "id": "941c0c9d-9ba1-48ff-9190-2d4428f25b80",
+      "name": "Execute \"Change status: ignore\""
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "EgCE8ocl9jnzaqgd",
+          "mode": "list",
+          "cachedResultName": "Lead: move to Ignore -> input lead name"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "manager": "={{ $('Get user: from text').item.json }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "manager",
+              "displayName": "manager",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1184,
+        112
+      ],
+      "id": "9ee252c9-0a74-4c92-8596-fc74bc3a4cad",
+      "name": "Execute \"Move to IGNORE -> input user name\""
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "SiRUsvgakY9APme2",
+          "mode": "list",
+          "cachedResultName": "Lead: change status -> add one chat to New"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "manager": "={{ $('Get user: from text').item.json }}",
+            "telegram": "={{ $('Telegram Trigger').item.json }}",
+            "to_set_status": "New"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "manager",
+              "displayName": "manager",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "telegram",
+              "displayName": "telegram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "to_set_status",
+              "displayName": "to_set_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1632,
+        1168
+      ],
+      "id": "9f83a5f2-11e9-4fc4-8e12-58e62ee1ba5f",
+      "name": "Execute \"Move one to NEW\""
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "LnhAbSAB6y7PSi0Q",
+          "mode": "list",
+          "cachedResultName": "Lead: move one to New -> input lead name"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "manager": "={{ $('Get user: from text').item.json }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "manager",
+              "displayName": "manager",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1184,
+        688
+      ],
+      "id": "63e4ddd3-7eab-4116-a7e6-8095bcb66b77",
+      "name": "Execute \"Add one NEW chat -> input user name\""
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Get state').item.json.state }}",
+                    "rightValue": "create_lead__name_input",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "32c1f1ba-c43b-4fcf-b213-56d3a9c3f802"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "create_lead__name_input"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "32db62b3-6dbd-4924-901a-bd0e7709275a",
+                    "leftValue": "={{ $('Get state').item.json.state }}",
+                    "rightValue": "update_lead__comment__ask_name",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "=update_lead__comment__ask_name"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "78e1f230-6b18-4312-aa73-aef62fa6d33a",
+                    "leftValue": "={{ $('Get state').item.json.state }}",
+                    "rightValue": "update_lead__ask_to_add_comment",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "=update_lead__ask_to_add_comment"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "541323be-9c2c-49d8-95d5-e2f7298048c9",
+                    "leftValue": "={{ $('Get state').item.json.state }}",
+                    "rightValue": "show_lead_card__ask_lead_input",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "=show_lead_card__ask_lead_input"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "31593b2c-e9f1-40ae-af86-7b84322de3d6",
+                    "leftValue": "={{ $('Get state').item.json.state }}",
+                    "rightValue": "update_lead__move_to_disscard__input_user",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "update_lead__move_to_disscard__input_user"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "5c992f60-54c0-4497-8309-3174365fc21a",
+                    "leftValue": "={{ $('Get state').item.json.state }}",
+                    "rightValue": "update_lead__move_to_ignore__input_user",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "=update_lead__move_to_ignore__input_user"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a2ed2629-b101-4118-825f-665b37bd4a23",
+                    "leftValue": "={{ $('Get state').item.json.state }}",
+                    "rightValue": "update_lead__move_one_to_new__input_user",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "update_lead__move_one_to_new__input_user"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "8913a10b-2101-4d4f-a460-9e4f37104055",
+                    "leftValue": "={{ $('Get state').item.json.state }}",
+                    "rightValue": "update_lead__choose_managers",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "update_lead__choose_managers"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e25f1e56-d4e0-46dc-b314-d130eec88688",
+                    "leftValue": "={{ $('Get state').item.json.state }}",
+                    "rightValue": "add_comment__content_in_buffer",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "add_comment__content_in_buffer"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "159d496e-f995-4582-a1aa-cbe7004ac2cf",
+                    "leftValue": "={{ $('Get state').item.json.state }}",
+                    "rightValue": "transcribe_audio__start",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "transcribe_audio__start"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a3724390-4fe6-4c48-b00d-a2ddad964cf2",
+                    "leftValue": "={{ $('Get state').item.json.state }}",
+                    "rightValue": "add_finance_comment__enter",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "add_finance_comment__enter"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "df540a3b-ee7e-49e3-8246-2965b8f399d5",
+                    "leftValue": "={{ $('Get state').item.json.state }}",
+                    "rightValue": "add_full_segmentation_comment__enter",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "add_full_segmentation_comment__enter"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1408,
+        1312
+      ],
+      "id": "887bbd66-8683-4b73-b959-5e3e65d65a20",
+      "name": "Switch: manager by state"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "YiW7NommqZvnCEIn",
+          "mode": "list",
+          "cachedResultName": "Lead: set manager"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "manager": "={{ $('Get user: from text').item.json }}",
+            "telegram": "={{ $('Telegram Trigger').item.json }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "telegram",
+              "displayName": "telegram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            },
+            {
+              "id": "manager",
+              "displayName": "manager",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1632,
+        1360
+      ],
+      "id": "b4377c76-0c93-4176-8006-24914e70b4c8",
+      "name": "Execute \"Set managers\""
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "2sSur2JLR99ZKeV7",
+          "mode": "list",
+          "cachedResultName": "Lead: add comment -> add category and finish"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "manager": "={{ $('Get user: from text').item.json }}",
+            "telegram": "={{ $('Telegram Trigger').item.json }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "manager",
+              "displayName": "manager",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "telegram",
+              "displayName": "telegram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1632,
+        1552
+      ],
+      "id": "a7b31801-a6bc-4950-965e-6073ad528743",
+      "name": "Execute \"Lead: add comment -> add category + finish\""
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "qKIpGHZJyoY3LlLL",
+          "mode": "list",
+          "cachedResultName": "Transcribe audio -> init"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "manager": "={{ $('Get user: from text').item.json }}",
+            "telegram": "={{ $('Telegram Trigger').item.json.message }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "manager",
+              "displayName": "manager",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            },
+            {
+              "id": "telegram",
+              "displayName": "telegram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1184,
+        880
+      ],
+      "id": "02d6562d-ee14-4e4d-a497-5aa40fcaa5b4",
+      "name": "Execute \"Transcribe audio: init\""
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "p63RSJqBqCvj3thq",
+          "mode": "list",
+          "cachedResultName": "Transcribe audio: process + finish"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "telegram": "={{ $('Telegram Trigger').item.json }}",
+            "manager": "={{ $('Get user: from text').item.json }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "manager",
+              "displayName": "manager",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "telegram",
+              "displayName": "telegram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1632,
+        1744
+      ],
+      "id": "723041d8-b872-4671-a335-823e7b72319c",
+      "name": "Execute \"Transcribe audio\""
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "p2xNwJT98O6WL2Fn",
+          "mode": "list",
+          "cachedResultName": "Lead: generate finance comment by AI -> start"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "telegram": "={{ $('Telegram Trigger').item.json }}",
+            "manager": "={{ $('Get user: from text').item.json }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "manager",
+              "displayName": "manager",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "telegram",
+              "displayName": "telegram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1184,
+        1072
+      ],
+      "id": "fe7d1193-dead-4060-bce0-809b7729336f",
+      "name": "Execute \"Generate finnance comment\""
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "owkcKGKU5ypbCFb3",
+          "mode": "list",
+          "cachedResultName": "Lead: generate finance comment by AI -> process + finish"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "manager": "={{ $('Get user: from text').item.json }}",
+            "telegram": "={{ $('Telegram Trigger').item.json }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "manager",
+              "displayName": "manager",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "telegram",
+              "displayName": "telegram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1632,
+        1936
+      ],
+      "id": "21107a20-223d-465b-b9f7-4db640c56783",
+      "name": "Execute \"Generate finance comment\""
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "onDHlj2QWO8ISvXL",
+          "mode": "list",
+          "cachedResultName": "Lead: generate full segmentation comment by AI -> start"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "telegram": "={{ $('Telegram Trigger').item.json }}",
+            "manager": "={{ $('Get user: from text').item.json }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "manager",
+              "displayName": "manager",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "telegram",
+              "displayName": "telegram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1184,
+        1264
+      ],
+      "id": "eb3992a3-ddfd-42c8-a013-9d3a87f13afa",
+      "name": "Execute \"Generate full segmentation\""
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "IgLOjU80jZrtlxUQ",
+          "mode": "list",
+          "cachedResultName": "Lead: generate full segmentation comment by AI -> process + finish"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "manager": "={{ $('Get user: from text').item.json }}",
+            "telegram": "={{ $('Telegram Trigger').item.json }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "manager",
+              "displayName": "manager",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "telegram",
+              "displayName": "telegram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1632,
+        2144
+      ],
+      "id": "3f3f3345-9ab2-44cf-b249-e90bb0b1da8e",
+      "name": "Execute \"Generate full segmentation comment\""
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "If command -> reset state in db",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch triggers": {
+      "main": [
+        [
+          {
+            "node": "Execute \"New User\"",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get user: from calback",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get user: from text",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get user: from text",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get user: from text",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get user: from text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get user: from calback": {
+      "main": [
+        [
+          {
+            "node": "If active user from callback?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get user: from text": {
+      "main": [
+        [
+          {
+            "node": "If active user from text?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch user: from calback": {
+      "main": [
+        [
+          {
+            "node": "Switch: manager callback",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        [
+          {
+            "node": "Execute \"Admin Register New Account\"",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch user: from text": {
+      "main": [
+        [
+          {
+            "node": "Execute \"Admin Register New Account\"",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Text from manager",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "If active user from callback?": {
+      "main": [
+        [
+          {
+            "node": "Switch user: from calback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If active user from text?": {
+      "main": [
+        [
+          {
+            "node": "Switch user: from text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text from manager": {
+      "main": [
+        [
+          {
+            "node": "Execute \"Create Lead Card: init\"",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute \"Add new leads to folder NEW\"",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute \"Move to DISCARD -> input user name\"",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute \"Move to IGNORE -> input user name\"",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute \"Lead: add comment -> start\"",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute \"Lead: show card -> enter lead name ...\"",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute \"Add one NEW chat -> input user name\"",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute \"Transcribe audio: init\"",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute \"Generate finnance comment\"",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute \"Generate full segmentation\"",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get state",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get state",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get state",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get state",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get state": {
+      "main": [
+        [
+          {
+            "node": "Switch: manager by state",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch: manager callback": {
+      "main": [
+        [
+          {
+            "node": "Execute Workflow \"create card to CRM using AI\"",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update state: create_lead__enter_source",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update state_data: add lead source",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update state: create_lead__enter_source": {
+      "main": [
+        [
+          {
+            "node": "Get sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get sources": {
+      "main": [
+        [
+          {
+            "node": "Get json with inline keyboard: lead sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get json with inline keyboard: lead sources": {
+      "main": [
+        [
+          {
+            "node": "TG message: choose lead source",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update state_data: add lead source": {
+      "main": [
+        [
+          {
+            "node": "Update state: add source to state_data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update state: add source to state_data": {
+      "main": [
+        [
+          {
+            "node": "Execute \"Lead: create -> save lead card",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If command -> reset state in db": {
+      "main": [
+        [
+          {
+            "node": "Update state: reset",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch triggers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update state: reset": {
+      "main": [
+        [
+          {
+            "node": "Switch triggers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch: manager by state": {
+      "main": [
+        [
+          {
+            "node": "Execute \"Lead: enter name\"",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute \"Find lead by name or username or id for adding comment",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute \"Lead: add comment\"",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute \"Show Lead: find lead\"",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute \"Change status: discard\"",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute \"Change status: ignore\"",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute \"Move one to NEW\"",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute \"Set managers\"",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute \"Lead: add comment -> add category + finish\"",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute \"Transcribe audio\"",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute \"Generate finance comment\"",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute \"Generate full segmentation comment\"",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "Telegram Trigger": [
+      {
+        "json": {
+          "update_id": 502824228,
+          "message": {
+            "message_id": 4861,
+            "from": {
+              "id": 8203479406,
+              "is_bot": false,
+              "first_name": "Амина",
+              "username": "amina_red",
+              "language_code": "en",
+              "is_premium": true
+            },
+            "chat": {
+              "id": 8203479406,
+              "first_name": "Амина",
+              "username": "amina_red",
+              "type": "private"
+            },
+            "date": 1760103102,
+            "text": "7613522292"
+          }
+        }
+      }
+    ]
+  },
+  "versionId": "a219bd89-49d4-4ccb-8090-fec6554c4a13",
+  "activeVersionId": "a219bd89-49d4-4ccb-8090-fec6554c4a13",
+  "versionCounter": 3,
+  "triggerCount": 1,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2025-08-20T18:35:27.338Z",
+      "createdAt": "2025-08-20T18:35:27.338Z",
+      "role": "workflow:owner",
+      "workflowId": "RWfRhDNsBYCSDlPo",
+      "projectId": "otThis0Dzllfqt7v",
+      "project": {
+        "updatedAt": "2025-08-20T18:30:26.018Z",
+        "createdAt": "2025-08-20T18:23:04.813Z",
+        "id": "otThis0Dzllfqt7v",
+        "name": "Ada Sales <dragmastery@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "b0f4cf25-2d4a-4614-b225-fe05addaa1fc"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

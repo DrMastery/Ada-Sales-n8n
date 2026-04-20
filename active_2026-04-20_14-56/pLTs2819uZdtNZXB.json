@@ -1,0 +1,314 @@
+{
+  "updatedAt": "2025-10-08T14:41:08.092Z",
+  "createdAt": "2025-09-02T10:53:41.649Z",
+  "id": "pLTs2819uZdtNZXB",
+  "name": "Find lead to ask to write a comment",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "manager",
+              "type": "object"
+            },
+            {
+              "name": "telegram",
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        192,
+        -16
+      ],
+      "id": "ba0c5f8c-a8e0-40d0-a22f-07aa14358ecb",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "tg_accounts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('When Executed by Another Workflow').item.json.manager.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "state",
+              "fieldValue": "=update_lead__ask_to_add_comment"
+            },
+            {
+              "fieldId": "state_data",
+              "fieldValue": "={\n  \"comment_lead\": {\n    \"user_id\": {{ $('If found').item.json.lead_data.user_id }}\n  }\n}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        928,
+        -32
+      ],
+      "id": "b092b565-15d4-48c5-bd20-2cf05e2c74ed",
+      "name": "Update state: update_lead__ask_to_add_comment",
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by Another Workflow').item.json.manager.id }}",
+        "text": "=Пожалуйста, введите заметку — текстом, голосом или аудио.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1200,
+        -32
+      ],
+      "id": "8f323b18-64a4-4356-a241-494bfcf79670",
+      "name": "Send text: ask to write comment",
+      "webhookId": "e9f4ce0e-7b53-44c1-921f-bfc13fed4dd3",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d207d4ab-c56f-48d5-a3a7-d6c9ff68c94f",
+              "leftValue": "={{ $('Find lead').item.json.is_found }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        672,
+        -16
+      ],
+      "id": "b15e446e-da8e-409c-bd27-255d275d19a2",
+      "name": "If found"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "6PGhJWkP2yYnbbKV",
+          "mode": "list",
+          "cachedResultName": "Find lead"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "manager": "={{ $json.manager }}",
+            "telegram": "={{ $json.telegram }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "manager",
+              "displayName": "manager",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            },
+            {
+              "id": "telegram",
+              "displayName": "telegram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        448,
+        -16
+      ],
+      "id": "795c4997-70c9-45f2-a91b-2cc0c04d99a0",
+      "name": "Find lead"
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Find lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update state: update_lead__ask_to_add_comment": {
+      "main": [
+        [
+          {
+            "node": "Send text: ask to write comment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If found": {
+      "main": [
+        [
+          {
+            "node": "Update state: update_lead__ask_to_add_comment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find lead": {
+      "main": [
+        [
+          {
+            "node": "If found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "manager": {
+            "id": 8316205217,
+            "created_at": "2025-08-31T16:50:48.673932+00:00",
+            "updated_at": "2025-08-31T16:50:48.673932",
+            "tg_username": "Amina_raii",
+            "first_name": "Amina",
+            "last_name": "S",
+            "role": "manager",
+            "status": "active",
+            "api_id": 25306690,
+            "api_hash": "d67dfca70f90b052b1f29709c52fbf44",
+            "string_session": "1ApWapzMBuwM9vEBXOHw74xUI3V59q1snBhn9q4_PO6_wzNVzUZmt4k9U02LRUCgHv3eS2N7fHXMsTNBUilqlUpbUhi_ip-GWP9gvtQclICeacJTYDOs-r2z-W_0ynmxnz6V3QRJgeuo3WWsuWYTV0oH3CoP_OIw9uI4hwDZwG8XfYGmg0s7PzahM30xNVqmRMfGUi4Sr4szkkdeM0THWUH5siXk4D8U-A7YG0fWrUkw-FDd4iUNuc9cHEHG3pRTYoRCSSX_FpshMDu46L7bnwPnUfnI_WQMcf3dqElUFD9XbFr7MXWlendFRCtrI6VCahMLmFHsWpDDWZ9HHtRuX7L4U4WIa-tU=",
+            "phone": "+380998234415",
+            "proxy_ip": "5.22.206.144",
+            "proxy_port": 59100,
+            "proxy_login": "dabstep4enko",
+            "proxy_password": "FjGhduJaEN",
+            "state": "update_lead__comment__ask_name",
+            "last_tg_api_call_at": null,
+            "state_data": null
+          },
+          "telegram": {
+            "update_id": 502822867,
+            "message": {
+              "message_id": 1887,
+              "from": {
+                "id": 8316205217,
+                "is_bot": false,
+                "first_name": "Amina",
+                "last_name": "S",
+                "username": "Amina_raii",
+                "language_code": "en"
+              },
+              "chat": {
+                "id": 8316205217,
+                "first_name": "Amina",
+                "last_name": "S",
+                "username": "Amina_raii",
+                "type": "private"
+              },
+              "date": 1756825463,
+              "text": "Vladyslav Hleb"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "versionId": "ff653a1b-b737-4e47-b123-aeca61972831",
+  "activeVersionId": "ff653a1b-b737-4e47-b123-aeca61972831",
+  "versionCounter": 3,
+  "triggerCount": 0,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2025-09-02T10:53:41.649Z",
+      "createdAt": "2025-09-02T10:53:41.649Z",
+      "role": "workflow:owner",
+      "workflowId": "pLTs2819uZdtNZXB",
+      "projectId": "otThis0Dzllfqt7v",
+      "project": {
+        "updatedAt": "2025-08-20T18:30:26.018Z",
+        "createdAt": "2025-08-20T18:23:04.813Z",
+        "id": "otThis0Dzllfqt7v",
+        "name": "Ada Sales <dragmastery@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "b0f4cf25-2d4a-4614-b225-fe05addaa1fc"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

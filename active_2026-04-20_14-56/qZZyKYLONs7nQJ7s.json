@@ -1,0 +1,359 @@
+{
+  "updatedAt": "2025-08-29T10:16:00.290Z",
+  "createdAt": "2025-08-28T15:10:23.284Z",
+  "id": "qZZyKYLONs7nQJ7s",
+  "name": "From: fill tg account creds",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Аккаунт API Creds",
+        "formDescription": "🔑 Укажите ключи API нового пользователя:   \n1. Перейдите на https://my.telegram.org    \n2. Войдите в систему    \n3. Получите `api_id`, `api_hash` \n4. Введите их ниже",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "API_ID",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "API_HASH",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Mobile Number (пример, +380....)",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": false,
+          "buttonLabel": "Save",
+          "path": "fill-tg-account-api-creds"
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -256,
+        0
+      ],
+      "id": "4891e467-dcdd-4a69-bb2c-74546654124d",
+      "name": "On form submission",
+      "webhookId": "de5c91b7-76f2-4a85-900d-c2808f6463a0"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://148.230.104.29:8000/send_code",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "api_id",
+              "value": "={{ $json.api_id }}"
+            },
+            {
+              "name": "api_hash",
+              "value": "={{ $json.api_hash }}"
+            },
+            {
+              "name": "phone",
+              "value": "={{ $json.phone }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        256,
+        0
+      ],
+      "id": "ddcbc94d-762a-478b-8a9e-814a3e10266d",
+      "name": "TR accounts api: send code",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "m7RprwkaG3kF5L6E",
+          "name": "Auth Token for tg_account_api script"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('On form submission').item.json.formQueryParameters.admin_chat_id }}",
+        "text": "=❌ Ошибка:\n`{{ $json.error.message }}`",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        528,
+        128
+      ],
+      "id": "ec256a47-d538-46d4-8e3e-52a4c1ebc8f3",
+      "name": "Send text: error in send code",
+      "webhookId": "15b4ba02-381e-4bc0-9454-c3f3e26fa15b",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('On form submission').item.json.formQueryParameters.admin_chat_id }}",
+        "text": "=Код подтверждения был отправлен в Telegram или SMS.\nПожалуйста, проверьте сообщения и введите код.",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Ввести код",
+                    "additionalFields": {
+                      "url": "=https://n8n.srv927081.hstgr.cloud/form/fill-tg-account-code?tg_new_user_id={{ $('On form submission').item.json.formQueryParameters.tg_new_user_id }}&admin_chat_id={{ $('On form submission').item.json.formQueryParameters.admin_chat_id }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        528,
+        -112
+      ],
+      "id": "fe7c8fcc-64be-4f02-8604-0a0e683e8d40",
+      "name": "Send text: send code",
+      "webhookId": "15b4ba02-381e-4bc0-9454-c3f3e26fa15b",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "tg_accounts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $json.formQueryParameters.tg_new_user_id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "api_id",
+              "fieldValue": "={{ $json.API_ID }}"
+            },
+            {
+              "fieldId": "api_hash",
+              "fieldValue": "={{ $json.API_HASH }}"
+            },
+            {
+              "fieldId": "phone",
+              "fieldValue": "={{ $json[\"Mobile Number (пример, +380....)\"] }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "deda27e3-cda0-4920-b980-8ac67e5c397f",
+      "name": "Save new account: api_id, api_hash, mobile number",
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('On form submission').item.json.formQueryParameters.admin_chat_id }}",
+        "text": "=Ввести заново:",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Ключи API нового пользователя",
+                    "additionalFields": {
+                      "url": "=https://n8n.srv927081.hstgr.cloud/form/fill-tg-account-api-creds?tg_new_user_id={{ $('On form submission').item.json.formQueryParameters.tg_new_user_id }}&admin_chat_id={{ $('On form submission').item.json.formQueryParameters.admin_chat_id }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        752,
+        128
+      ],
+      "id": "38cc3fe4-16b5-4ca0-88df-907681cc9092",
+      "name": "Send text: get account api creds",
+      "webhookId": "c62569aa-65eb-4561-b97d-00d23bfcee9b",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Save new account: api_id, api_hash, mobile number",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TR accounts api: send code": {
+      "main": [
+        [
+          {
+            "node": "Send text: send code",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send text: error in send code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send text: error in send code": {
+      "main": [
+        [
+          {
+            "node": "Send text: get account api creds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send text: send code": {
+      "main": [
+        []
+      ]
+    },
+    "Save new account: api_id, api_hash, mobile number": {
+      "main": [
+        [
+          {
+            "node": "TR accounts api: send code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send text: get account api creds": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {
+    "On form submission": [
+      {
+        "json": {
+          "API_ID": 1,
+          "API_HASH": "1",
+          "Mobile Number (пример, +380....)": "іваі",
+          "submittedAt": "2025-08-28T18:35:11.093+02:00",
+          "formMode": "production",
+          "formQueryParameters": {
+            "tg_new_user_id": "8203479406",
+            "admin_chat_id": "7280425346"
+          }
+        }
+      }
+    ]
+  },
+  "versionId": "276a3bf3-f7c4-4fb8-ae12-2e740578cf76",
+  "activeVersionId": "276a3bf3-f7c4-4fb8-ae12-2e740578cf76",
+  "versionCounter": 3,
+  "triggerCount": 1,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2025-08-28T15:10:23.284Z",
+      "createdAt": "2025-08-28T15:10:23.284Z",
+      "role": "workflow:owner",
+      "workflowId": "qZZyKYLONs7nQJ7s",
+      "projectId": "otThis0Dzllfqt7v",
+      "project": {
+        "updatedAt": "2025-08-20T18:30:26.018Z",
+        "createdAt": "2025-08-20T18:23:04.813Z",
+        "id": "otThis0Dzllfqt7v",
+        "name": "Ada Sales <dragmastery@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "b0f4cf25-2d4a-4614-b225-fe05addaa1fc"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

@@ -1,0 +1,381 @@
+{
+  "updatedAt": "2025-09-02T13:22:57.706Z",
+  "createdAt": "2025-08-28T15:57:02.549Z",
+  "id": "ulBX0nu1yTqXPMaJ",
+  "name": "From: fill tg code and password",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Аккаунт API Creds",
+        "formDescription": "🔑 Укажите telegram code (и password)",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Code",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Password (если 2FA включен)",
+              "fieldType": "password"
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": false,
+          "buttonLabel": "Save",
+          "path": "fill-tg-account-code"
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -304,
+        0
+      ],
+      "id": "76f817ef-c824-4eb0-8f90-c16319e568ab",
+      "name": "On form submission",
+      "webhookId": "fb100d92-4d9f-49da-92af-f880b5db0171"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://148.230.104.29:8000/login_session",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "phone",
+              "value": "={{ $('Get a new user').item.json.phone }}"
+            },
+            {
+              "name": "=code",
+              "value": "={{ $('On form submission').item.json.Code }}"
+            },
+            {
+              "name": "password",
+              "value": "={{ $('On form submission').item.json[\"Password (если 2FA включен)\"] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        192,
+        0
+      ],
+      "id": "52d85a5b-012a-4b75-b1a4-fa4a6fa8f995",
+      "name": "TR accounts api: login session",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "m7RprwkaG3kF5L6E",
+          "name": "Auth Token for tg_account_api script"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "tg_accounts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Get a new user').item.json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "string_session",
+              "fieldValue": "={{ $json.string_session }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        496,
+        -128
+      ],
+      "id": "5f40f1d9-2d79-4762-a98f-7b0f9cc7c1e6",
+      "name": "Save new account: session_string",
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('On form submission').item.json.formQueryParameters.admin_chat_id }}",
+        "text": "=Пожалуйста, укажите данные вручную.\n\n1) Создайте пользователя в CRM. \n- User id: `{{ $json.id }}`\n- Username: `{{ $json.tg_username }}`\n- Имя: `{{ $json.first_name }}` \n- Фамилиа: `{{ $json.last_name }}` \n- Роль: `{{ $json.role }}` \n- Мобильний телефон: `{{ $json.phone }}`\n\n2) Добавьте папки в аккаунте телеграм в таком порядке:\n'Новые', 'Сегментация', 'Слив', 'Игнор'.",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Завершить",
+                    "additionalFields": {
+                      "callback_data": "=added_new_user_in_crm_with_id_={{ $('Save new account: session_string').item.json.id }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        752,
+        -128
+      ],
+      "id": "96125b4c-be60-462b-9b1a-e4c4b3a983ad",
+      "name": "Send text: add to CRM",
+      "webhookId": "15b4ba02-381e-4bc0-9454-c3f3e26fa15b",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "tg_accounts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "keyValue": "={{ $('On form submission').item.json.formQueryParameters.tg_new_user_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        0
+      ],
+      "id": "2000efbb-c3dd-43df-80b2-44f028d3f463",
+      "name": "Get a new user",
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('On form submission').item.json.formQueryParameters.admin_chat_id }}",
+        "text": "=❌ Ошибка:\n`{{ $json.error.message }}`",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        496,
+        128
+      ],
+      "id": "ff8f9111-b4f8-457e-89b5-11a82de33d43",
+      "name": "Send text: error in send code",
+      "webhookId": "15b4ba02-381e-4bc0-9454-c3f3e26fa15b",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('On form submission').item.json.formQueryParameters.admin_chat_id }}",
+        "text": "=Заполните заново:",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Код",
+                    "additionalFields": {
+                      "url": "=https://n8n.srv927081.hstgr.cloud/form/fill-tg-account-code?tg_new_user_id={{ $('On form submission').item.json.formQueryParameters.tg_new_user_id }}&admin_chat_id={{ $('On form submission').item.json.formQueryParameters.admin_chat_id }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        752,
+        128
+      ],
+      "id": "7f95b24e-5e0d-4ae2-9ac5-2b93ac7831f1",
+      "name": "Send text: get account api creds",
+      "webhookId": "c62569aa-65eb-4561-b97d-00d23bfcee9b",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Get a new user",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TR accounts api: login session": {
+      "main": [
+        [
+          {
+            "node": "Save new account: session_string",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send text: error in send code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save new account: session_string": {
+      "main": [
+        [
+          {
+            "node": "Send text: add to CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a new user": {
+      "main": [
+        [
+          {
+            "node": "TR accounts api: login session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send text: error in send code": {
+      "main": [
+        [
+          {
+            "node": "Send text: get account api creds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send text: add to CRM": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "On form submission": [
+      {
+        "json": {
+          "Code": "41222",
+          "Password (если 2FA включен)": "",
+          "submittedAt": "2025-08-29T12:28:33.418+02:00",
+          "formMode": "production",
+          "formQueryParameters": {
+            "tg_new_user_id": "8203479406",
+            "admin_chat_id": "7280425346"
+          }
+        }
+      }
+    ]
+  },
+  "versionId": "36a13823-199a-4f0b-b33f-af0361ab5c08",
+  "activeVersionId": "36a13823-199a-4f0b-b33f-af0361ab5c08",
+  "versionCounter": 3,
+  "triggerCount": 1,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2025-08-28T15:57:02.549Z",
+      "createdAt": "2025-08-28T15:57:02.549Z",
+      "role": "workflow:owner",
+      "workflowId": "ulBX0nu1yTqXPMaJ",
+      "projectId": "otThis0Dzllfqt7v",
+      "project": {
+        "updatedAt": "2025-08-20T18:30:26.018Z",
+        "createdAt": "2025-08-20T18:23:04.813Z",
+        "id": "otThis0Dzllfqt7v",
+        "name": "Ada Sales <dragmastery@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "b0f4cf25-2d4a-4614-b225-fe05addaa1fc"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

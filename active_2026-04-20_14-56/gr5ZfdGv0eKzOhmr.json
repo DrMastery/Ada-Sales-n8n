@@ -1,0 +1,231 @@
+{
+  "updatedAt": "2025-09-25T16:03:34.560Z",
+  "createdAt": "2025-08-31T11:29:57.189Z",
+  "id": "gr5ZfdGv0eKzOhmr",
+  "name": "News Leads: move new chats to NEW folder",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        256,
+        240
+      ],
+      "id": "e96f7b91-aed8-45a2-a987-f34ddd6061cb",
+      "name": "When Executed by \"Master\""
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by \"Master\"').item.json.id }}",
+        "text": "=❌ Ошибка",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        896,
+        368
+      ],
+      "id": "fab2735e-8cef-487a-9088-5b6798462059",
+      "name": "Send text: error in send code",
+      "webhookId": "15b4ba02-381e-4bc0-9454-c3f3e26fa15b",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://148.230.104.29:8000/move_new_users_to_new_folder",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "account_id",
+              "value": "={{ $('When Executed by \"Master\"').item.json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        544,
+        240
+      ],
+      "id": "dfa48f18-4f74-48c4-b1eb-8b2b6a9fd7b9",
+      "name": "TR accounts api: move new chats to folder NEW",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "m7RprwkaG3kF5L6E",
+          "name": "Auth Token for tg_account_api script"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "function escapeTelegramMarkdownV2(text) {\n  return text.replace(/([_*[\\]()~`>#+\\-=|{}.!])/g, '\\\\$1');\n}\n\nfunction formatTelegramMessage(data) {\n  if (!data || (data.moved_new_count === 0 && data.moved_ignore_count === 0)) {\n    return \"Новых пользователей для добавления нет\";\n  }\n\n  let messageLines = [];\n\n  // --- New users added to \"Новые\" ---\n  if (data.added_users && data.added_users.length > 0) {\n    messageLines.push(\"✅ Пользователи успешно добавлены в папку «Новые»:\\n\");\n    data.added_users.forEach(user => {\n      let name = user.first_name || \"\";\n      if (user.last_name) {\n        name += ` ${user.last_name}`;\n      }\n      if (user.username) {\n        name += ` (@${user.username})`;\n      }\n      messageLines.push(escapeTelegramMarkdownV2(`${name} — user_id: ${user.user_id}`));\n    });\n    messageLines.push(\"\"); // empty line\n  }\n\n  // --- Existing users moved to \"Игнор\" ---\n  if (data.ignored_users && data.ignored_users.length > 0) {\n    messageLines.push(\"⚠️ Пользователи уже существуют в базе и добавлены в папку «Игнор»:\\n\");\n    data.ignored_users.forEach(user => {\n      let name = user.first_name || \"\";\n      if (user.last_name) {\n        name += ` ${user.last_name}`;\n      }\n      if (user.username) {\n        name += ` (@${user.username})`;\n      }\n      messageLines.push(escapeTelegramMarkdownV2(`${name} — user_id: ${user.user_id}`));\n    });\n  }\n\n  return messageLines.join(\"\\n\");\n}\n\n// --- Get data from previous node ---\nconst data = $(\"TR accounts api: move new chats to folder NEW\").first().json;\nconst telegramMessage = formatTelegramMessage(data);\n\nreturn {\"json\": {\"message\": telegramMessage}};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        80
+      ],
+      "id": "d467455d-5d1e-4add-bf8c-eb49668e4926",
+      "name": "Format new user data"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by \"Master\"').item.json.id }}",
+        "text": "={{ $('Format new user data').item.json.message }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "MarkdownV2"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1216,
+        80
+      ],
+      "id": "4f5855b4-a045-4143-9374-8b75971ae69d",
+      "name": "Send text: new users data",
+      "webhookId": "15b4ba02-381e-4bc0-9454-c3f3e26fa15b",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Send text: error in send code": {
+      "main": [
+        []
+      ]
+    },
+    "When Executed by \"Master\"": {
+      "main": [
+        [
+          {
+            "node": "TR accounts api: move new chats to folder NEW",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TR accounts api: move new chats to folder NEW": {
+      "main": [
+        [
+          {
+            "node": "Format new user data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send text: error in send code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format new user data": {
+      "main": [
+        [
+          {
+            "node": "Send text: new users data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {
+    "When Executed by \"Master\"": [
+      {
+        "json": {
+          "id": 8203479406,
+          "created_at": "2025-08-29T17:00:31.033459+00:00",
+          "updated_at": "2025-08-29T17:00:31.033459",
+          "tg_username": "amina_red",
+          "first_name": "Амина",
+          "last_name": null,
+          "role": "manager",
+          "status": "active",
+          "api_id": 26502193,
+          "api_hash": "841f2564dd4b3f62b440372b906374d4",
+          "string_session": "1ApWapzMBu8EGjJ4C-B_glbIOlemNqzMShYcmxVbJC9htojZU9wqSr_bTAZGC06ToS0bjl1OZMWjI8lnlzdpNnjQVj-7K0qKw3SCukcnUgcuJvOAEyMLKN1LzDnasQElngOOFNzBPK8DYJrWIayK8JlCrC2-b-So1bfR3n6SQcK-lOC38DyBqXmR8a1O0hxNQbN0sHa7rlGvbRGSZUH4TzqQ6-K-fUJChNKQD0DqE_dNBf6pr4WXaknHn9_wSvjVpEGzDnwaYgc7u8nmU2MQYPLlDIl72FVxcPyhLUUALoksCpZzgzQRO4RLMmOlaHN1saOyXBf_a0U6W4quBhJ3Bx4mPoOpF2NU=",
+          "phone": "+380630282951",
+          "proxy_ip": "5.22.204.236",
+          "proxy_port": 59100,
+          "proxy_login": "dabstep4enko",
+          "proxy_password": "FjGhduJaEN",
+          "state": "create_lead__name_input",
+          "last_tg_api_call_at": null
+        }
+      }
+    ]
+  },
+  "versionId": "7f7f22db-c366-4789-b970-370528a69599",
+  "activeVersionId": "7f7f22db-c366-4789-b970-370528a69599",
+  "versionCounter": 3,
+  "triggerCount": 0,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2025-08-31T11:29:57.189Z",
+      "createdAt": "2025-08-31T11:29:57.189Z",
+      "role": "workflow:owner",
+      "workflowId": "gr5ZfdGv0eKzOhmr",
+      "projectId": "otThis0Dzllfqt7v",
+      "project": {
+        "updatedAt": "2025-08-20T18:30:26.018Z",
+        "createdAt": "2025-08-20T18:23:04.813Z",
+        "id": "otThis0Dzllfqt7v",
+        "name": "Ada Sales <dragmastery@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "b0f4cf25-2d4a-4614-b225-fe05addaa1fc"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

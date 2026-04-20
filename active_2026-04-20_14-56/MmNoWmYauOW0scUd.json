@@ -1,0 +1,720 @@
+{
+  "updatedAt": "2025-08-30T15:11:21.960Z",
+  "createdAt": "2025-08-20T18:36:03.535Z",
+  "id": "MmNoWmYauOW0scUd",
+  "name": "Admin Register New Account",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "telegram",
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -2224,
+        864
+      ],
+      "id": "9a94fad9-41ba-4eb4-9ab2-34ade089e7c2",
+      "name": "When Executed by Master"
+    },
+    {
+      "parameters": {
+        "jsCode": "// input string\nconst input = $('When Executed by Master').first().json.telegram.callback_query.data\n// split by underscore\nconst parts = input.split('_');\n\n// parts looks like: ['set', 'manager', 'role', 'for', '7608587883']\n\n// extract role and user ID\nconst role = parts[1]; \n\nreturn [\n  {\n    json: {\n      role: role\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -720,
+        576
+      ],
+      "id": "babc742f-59f2-4392-8dbf-8f1b3015438b",
+      "name": "split calback: role, user_id"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by Master').item.json.telegram.callback_query.from.id }}",
+        "text": "=Роль \"{{ $('split calback: role, user_id').item.json.role.toTitleCase() }}\" устанновлена пользователю по имени - {{$('Send message to user: role is set').item.json.result.chat.first_name}}\n",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -16,
+        576
+      ],
+      "id": "726f37af-df9b-450f-8258-6bd792ed2a7c",
+      "name": "Send message to admin: role is set",
+      "webhookId": "3e7f175f-b2dc-4721-9956-c16dc82c77d7",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Get new user from Supabase').item.json.id }}",
+        "text": "=Вам установлена роль \"{{ $('split calback: role, user_id').item.json.role.toTitleCase() }}\"!",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -256,
+        576
+      ],
+      "id": "2d97a3d0-1e24-4afc-9a5e-ac0d4b4fd424",
+      "name": "Send message to user: role is set",
+      "webhookId": "8c5daffd-385b-45ed-b23d-e9b0c210b692",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "tg_accounts",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Get new user from Supabase').item.json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "role",
+              "fieldValue": "={{ $json.role }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -496,
+        576
+      ],
+      "id": "e8b15878-83a4-4ac5-be7b-333c28edb67a",
+      "name": "Set role",
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  'json': {\n    botChatID: $input.first().json.telegram.callback_query.from.id\n  }\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1712,
+        704
+      ],
+      "id": "0a757667-ba8f-4c68-9028-c2dc8ddcc247",
+      "name": "get botChatId from calback"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e80eab18-437c-41a4-bd77-35b177ed4e3c",
+                    "leftValue": "={{ $('When Executed by Master').item.json.telegram.callback_query?.data || null }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Callback?"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "3a543603-7f18-4f1f-ad4b-115a69c875e5",
+                    "leftValue": "={{ $json.telegram.message?.text || null }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Text?"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -2032,
+        864
+      ],
+      "id": "8b60b4e7-9882-4d7d-8945-7c716edaa9f4",
+      "name": "Message type"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('When Executed by Master').item.json.telegram.callback_query.data }}",
+                    "rightValue": "/^set_\\w+_role_for_\\d+$/",
+                    "operator": {
+                      "type": "string",
+                      "operation": "regex"
+                    },
+                    "id": "caac63bf-b98f-43ad-93bb-577a32d52233"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Set Role"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b8f50c47-2dee-47bb-92cd-d2fc2c9ccd82",
+                    "leftValue": "={{ $('When Executed by Master').item.json.telegram.callback_query.data }}",
+                    "rightValue": "added_new_user_in_crm_with_id_",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Finish of adding new user"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -1072,
+        704
+      ],
+      "id": "bf363297-3dbe-4fef-a9e3-e0362c02bca6",
+      "name": "Callbacks",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "589c64e3-4757-4201-9b73-af70dfb6d969",
+              "name": "botChatId",
+              "value": "={{ $json.botChatID }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1504,
+        704
+      ],
+      "id": "c56db0bf-34f0-4d9b-b516-760bda9aa3d0",
+      "name": "Get botChatId"
+    },
+    {
+      "parameters": {
+        "url": "https://sppgynnldrfpfffqgdrg.supabase.co/rest/v1/tg_accounts?select=*&order=created_at.desc&limit=1",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwcGd5bm5sZHJmcGZmZnFnZHJnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzQ2MjM2NiwiZXhwIjoyMDY5MDM4MzY2fQ.VrHLc-SbjGCgbb3BGWi5xSbvHouIvNOLtEvAUJekQPA"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwcGd5bm5sZHJmcGZmZnFnZHJnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzQ2MjM2NiwiZXhwIjoyMDY5MDM4MzY2fQ.VrHLc-SbjGCgbb3BGWi5xSbvHouIvNOLtEvAUJekQPA"
+            }
+          ]
+        },
+        "options": {
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1280,
+        704
+      ],
+      "id": "2c909e7e-b7e8-47e0-8396-3f9d4933b678",
+      "name": "Get new user from Supabase"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "tg_accounts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "status",
+              "fieldValue": "=active"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        848
+      ],
+      "id": "7b16f98e-cde9-49ae-b47c-c0c206a59662",
+      "name": "Save new account: make active",
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by Master').item.json.telegram.callback_query.from.id }}",
+        "text": "=🔑 Укажите `proxy creds` нового акканта",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Заполнить",
+                    "additionalFields": {
+                      "url": "=https://n8n.srv927081.hstgr.cloud/form/fill-proxy-creds?tg_new_user_id={{$('Get new user from Supabase').item.json.id }}&admin_chat_id={{ $('get botChatId from calback').item.json.botChatID }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        208,
+        576
+      ],
+      "id": "2d260be1-4d9d-485d-9c15-8a1e1efe4c2b",
+      "name": "Send text: get account proxy creds",
+      "webhookId": "c62569aa-65eb-4561-b97d-00d23bfcee9b",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Get botChatId').item.json.botChatId }}",
+        "text": "=✅ Новый пользователь зарегистрирован:\n- name: `{{ $('Save new account: make active').item.json.first_name }} {{ $('Save new account: make active').item.json.last_name }}`\n- id: `{{ $('Save new account: make active').item.json.id }}`\n- username: `{{ $('Save new account: make active').item.json.tg_username }}`\n- role: `{{ $('Save new account: make active').item.json.role }}`\n\nАккаунт готов к использованию. ",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -496,
+        848
+      ],
+      "id": "201632ce-61f4-41cf-8740-f2b0f76ca61b",
+      "name": "Send text (admin): user registered",
+      "webhookId": "728145e6-87fe-4ed9-9974-2aa95192fbf5",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Save new account: make active').item.json.id }}",
+        "text": "=✅ Вы, `{{ $('Save new account: make active').item.json.first_name }}` , успешно зарегистрированы в системе.  \nВаш аккаунт готов к использованию.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -256,
+        848
+      ],
+      "id": "9159a1e2-4bda-4604-a428-4ba2c4bdef60",
+      "name": "Send text (user): user registered",
+      "webhookId": "728145e6-87fe-4ed9-9974-2aa95192fbf5",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Master": {
+      "main": [
+        [
+          {
+            "node": "Message type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "split calback: role, user_id": {
+      "main": [
+        [
+          {
+            "node": "Set role",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message to admin: role is set": {
+      "main": [
+        [
+          {
+            "node": "Send text: get account proxy creds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message to user: role is set": {
+      "main": [
+        [
+          {
+            "node": "Send message to admin: role is set",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set role": {
+      "main": [
+        [
+          {
+            "node": "Send message to user: role is set",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get botChatId from calback": {
+      "main": [
+        [
+          {
+            "node": "Get botChatId",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message type": {
+      "main": [
+        [
+          {
+            "node": "get botChatId from calback",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Callbacks": {
+      "main": [
+        [
+          {
+            "node": "split calback: role, user_id",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Save new account: make active",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get botChatId": {
+      "main": [
+        [
+          {
+            "node": "Get new user from Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get new user from Supabase": {
+      "main": [
+        [
+          {
+            "node": "Callbacks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save new account: make active": {
+      "main": [
+        [
+          {
+            "node": "Send text (admin): user registered",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send text: get account proxy creds": {
+      "main": [
+        []
+      ]
+    },
+    "Send text (admin): user registered": {
+      "main": [
+        [
+          {
+            "node": "Send text (user): user registered",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send text (user): user registered": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "When Executed by Master": [
+      {
+        "json": {
+          "telegram": {
+            "update_id": 502822602,
+            "callback_query": {
+              "id": "3599072654723140529",
+              "from": {
+                "id": 7280425346,
+                "is_bot": false,
+                "first_name": "Alexey Raf",
+                "username": "alex_raaf",
+                "language_code": "en"
+              },
+              "message": {
+                "message_id": 1368,
+                "from": {
+                  "id": 8176986442,
+                  "is_bot": true,
+                  "first_name": "ADA Agent",
+                  "username": "ada_agent01_bot"
+                },
+                "chat": {
+                  "id": 7280425346,
+                  "first_name": "Alexey Raf",
+                  "username": "alex_raaf",
+                  "type": "private"
+                },
+                "date": 1756486902,
+                "text": "Создайте пользователя в CRM. \n\nПожалуйста, укажите данные: \n- User id: 8203479406\n- Username: amina_red\n- Имя: Амина \n- Фамилиа:  \n- Роль: expert \n- Мобильний телефон: +380630282951",
+                "entities": [
+                  {
+                    "offset": 71,
+                    "length": 10,
+                    "type": "code"
+                  },
+                  {
+                    "offset": 94,
+                    "length": 9,
+                    "type": "code"
+                  },
+                  {
+                    "offset": 111,
+                    "length": 5,
+                    "type": "code"
+                  },
+                  {
+                    "offset": 139,
+                    "length": 6,
+                    "type": "code"
+                  },
+                  {
+                    "offset": 168,
+                    "length": 13,
+                    "type": "code"
+                  }
+                ],
+                "reply_markup": {
+                  "inline_keyboard": [
+                    [
+                      {
+                        "text": "Завершить",
+                        "callback_data": "added_new_user_in_crm_with_id_=8203479406"
+                      }
+                    ]
+                  ]
+                }
+              },
+              "chat_instance": "4237527323738865301",
+              "data": "added_new_user_in_crm_with_id_=8203479406"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "versionId": "51eccaf7-38f1-4107-94ee-989b5664a251",
+  "activeVersionId": "51eccaf7-38f1-4107-94ee-989b5664a251",
+  "versionCounter": 3,
+  "triggerCount": 0,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2025-08-20T18:36:03.535Z",
+      "createdAt": "2025-08-20T18:36:03.535Z",
+      "role": "workflow:owner",
+      "workflowId": "MmNoWmYauOW0scUd",
+      "projectId": "otThis0Dzllfqt7v",
+      "project": {
+        "updatedAt": "2025-08-20T18:30:26.018Z",
+        "createdAt": "2025-08-20T18:23:04.813Z",
+        "id": "otThis0Dzllfqt7v",
+        "name": "Ada Sales <dragmastery@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "b0f4cf25-2d4a-4614-b225-fe05addaa1fc"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

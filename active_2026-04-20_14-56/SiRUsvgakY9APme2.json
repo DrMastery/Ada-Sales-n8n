@@ -1,0 +1,567 @@
+{
+  "updatedAt": "2025-09-19T15:38:20.690Z",
+  "createdAt": "2025-09-03T08:33:52.491Z",
+  "id": "SiRUsvgakY9APme2",
+  "name": "Lead: change status -> add one chat to New",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "manager",
+              "type": "object"
+            },
+            {
+              "name": "telegram",
+              "type": "object"
+            },
+            {
+              "name": "to_set_status"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -848,
+        -160
+      ],
+      "id": "a445bded-2e8a-47b0-92f1-33401a405979",
+      "name": "When Executed by Master"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "tg_accounts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('When Executed by Master').first().json.manager.id}}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "state",
+              "fieldValue": "={{ null }}"
+            },
+            {
+              "fieldId": "state_data",
+              "fieldValue": "={{ null }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1184,
+        -64
+      ],
+      "id": "d39a075e-7edb-47bd-ac1e-a967640e58ad",
+      "name": "Update state: reset",
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by Master').item.json.manager.id }}",
+        "text": "=❌ Ошибка:\n`{{ $('TR accounts api: move chat to another folder').item.json.error.message }}`",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        896,
+        176
+      ],
+      "id": "bffb38fa-82cd-48ea-bc87-6d1918ab988a",
+      "name": "Send text: error",
+      "webhookId": "0428bec3-7dea-48a4-93f3-a83696952dab",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://148.230.104.29:8000/move_chat_to_folder",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "account_id",
+              "value": "={{ $('When Executed by Master').item.json.manager.id }}"
+            },
+            {
+              "name": "user_id",
+              "value": "={{ $('TR accounts api: find chat1').item.json.chat_info.user_id }}"
+            },
+            {
+              "name": "folder",
+              "value": "=Новые"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        592,
+        -48
+      ],
+      "id": "5ed717dc-b9f5-4fab-9e51-14753f775d78",
+      "name": "TR accounts api: move chat to another folder",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "m7RprwkaG3kF5L6E",
+          "name": "Auth Token for tg_account_api script"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "tg_leads",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "user_id",
+              "keyValue": "={{ $json.chat_info.user_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -336,
+        -176
+      ],
+      "id": "217bd91b-ec63-41b1-9767-907caca9e9e9",
+      "name": "Find lead by user id",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e84957da-d8fc-4e66-bd5a-32af8bb42885",
+              "leftValue": "={{ $('Find lead by user id').item.json.isNotEmpty() }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -80,
+        -176
+      ],
+      "id": "174dfe67-9355-4311-b278-b5b4f0ce3056",
+      "name": "if (user_id)"
+    },
+    {
+      "parameters": {
+        "tableId": "tg_leads",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $('TR accounts api: find chat1').item.json.chat_info.user_id }}"
+            },
+            {
+              "fieldId": "first_name",
+              "fieldValue": "={{ $('TR accounts api: find chat1').item.json.chat_info.first_name }}"
+            },
+            {
+              "fieldId": "last_name",
+              "fieldValue": "={{ $('TR accounts api: find chat1').item.json.chat_info.last_name }}"
+            },
+            {
+              "fieldId": "username",
+              "fieldValue": "={{ $('TR accounts api: find chat1').item.json.chat_info.username }}"
+            },
+            {
+              "fieldId": "full_name",
+              "fieldValue": "={{ $('TR accounts api: find chat1').item.json.chat_info.full_name }}"
+            },
+            {
+              "fieldId": "folder",
+              "fieldValue": "New"
+            },
+            {
+              "fieldId": "added_by",
+              "fieldValue": "={{ $('When Executed by Master').item.json.manager.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        320,
+        -48
+      ],
+      "id": "5cb88f2c-2007-4d67-8693-c2a45bb77d26",
+      "name": "Create lead",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "zn9ty3kjGEQxM2MK",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://148.230.104.29:8000/get_chat_info",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "account_id",
+              "value": "={{ $('When Executed by Master').item.json.manager.id }}"
+            },
+            {
+              "name": "query",
+              "value": "={{ $('When Executed by Master').item.json.telegram.message.text }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -592,
+        -160
+      ],
+      "id": "97ecb20f-19b0-47e3-aaad-8fabbb8f8d45",
+      "name": "TR accounts api: find chat1",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "m7RprwkaG3kF5L6E",
+          "name": "Auth Token for tg_account_api script"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by Master').item.json.manager.id }}",
+        "text": "❌ Ошибка: `{{ $('TR accounts api: move chat to another folder').item.json.error.message }}`",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -336,
+        32
+      ],
+      "id": "3dade364-9c7e-4ed2-bde5-139ff3d2b535",
+      "name": "Send text: not found lead2",
+      "webhookId": "68f32ba9-f692-40de-a4a2-3f95d49ad45b",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by Master').first().json.manager.id }}",
+        "text": "=Лид перемещён в папку \"Новые\".",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        896,
+        -64
+      ],
+      "id": "f853b322-efde-479c-aa48-3ced4328a4dd",
+      "name": "Send text: moved to New",
+      "webhookId": "010e78dd-ca59-4fc5-911c-87e3113a0164",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by Master').item.json.manager.id }}",
+        "text": "Лид был ранее сохранён. Нельзя переместить в \"Новые\".",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        320,
+        -304
+      ],
+      "id": "180e7789-7875-47eb-adf0-150375b74844",
+      "name": "Send text: found lead",
+      "webhookId": "68f32ba9-f692-40de-a4a2-3f95d49ad45b",
+      "credentials": {
+        "telegramApi": {
+          "id": "kLofIbHPyU5bBCRT",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Master": {
+      "main": [
+        [
+          {
+            "node": "TR accounts api: find chat1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TR accounts api: move chat to another folder": {
+      "main": [
+        [
+          {
+            "node": "Send text: moved to New",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send text: error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find lead by user id": {
+      "main": [
+        [
+          {
+            "node": "if (user_id)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "if (user_id)": {
+      "main": [
+        [
+          {
+            "node": "Send text: found lead",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create lead": {
+      "main": [
+        [
+          {
+            "node": "TR accounts api: move chat to another folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TR accounts api: find chat1": {
+      "main": [
+        [
+          {
+            "node": "Find lead by user id",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send text: not found lead2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send text: moved to New": {
+      "main": [
+        [
+          {
+            "node": "Update state: reset",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "When Executed by Master": [
+      {
+        "json": {
+          "manager": {
+            "id": 8203479406,
+            "created_at": "2025-08-29T17:00:31.033459+00:00",
+            "updated_at": "2025-08-29T17:00:31.033459",
+            "tg_username": "amina_red",
+            "first_name": "Амина",
+            "last_name": null,
+            "role": "manager",
+            "status": "active",
+            "api_id": 26502193,
+            "api_hash": "841f2564dd4b3f62b440372b906374d4",
+            "string_session": "1ApWapzMBu8EGjJ4C-B_glbIOlemNqzMShYcmxVbJC9htojZU9wqSr_bTAZGC06ToS0bjl1OZMWjI8lnlzdpNnjQVj-7K0qKw3SCukcnUgcuJvOAEyMLKN1LzDnasQElngOOFNzBPK8DYJrWIayK8JlCrC2-b-So1bfR3n6SQcK-lOC38DyBqXmR8a1O0hxNQbN0sHa7rlGvbRGSZUH4TzqQ6-K-fUJChNKQD0DqE_dNBf6pr4WXaknHn9_wSvjVpEGzDnwaYgc7u8nmU2MQYPLlDIl72FVxcPyhLUUALoksCpZzgzQRO4RLMmOlaHN1saOyXBf_a0U6W4quBhJ3Bx4mPoOpF2NU=",
+            "phone": "+380630282951",
+            "proxy_ip": "5.22.204.236",
+            "proxy_port": 59100,
+            "proxy_login": "dabstep4enko",
+            "proxy_password": "FjGhduJaEN",
+            "state": "update_lead__move_one_to_new__input_user",
+            "last_tg_api_call_at": null,
+            "state_data": null
+          },
+          "telegram": {
+            "update_id": 502823366,
+            "message": {
+              "message_id": 3002,
+              "from": {
+                "id": 8203479406,
+                "is_bot": false,
+                "first_name": "Амина",
+                "username": "amina_red",
+                "language_code": "ru",
+                "is_premium": true
+              },
+              "chat": {
+                "id": 8203479406,
+                "first_name": "Амина",
+                "username": "amina_red",
+                "type": "private"
+              },
+              "date": 1758295300,
+              "text": "Vlad"
+            }
+          },
+          "to_set_status": "New"
+        }
+      }
+    ]
+  },
+  "versionId": "7dc50898-cbce-41ad-9614-5fd13b335976",
+  "activeVersionId": "7dc50898-cbce-41ad-9614-5fd13b335976",
+  "versionCounter": 3,
+  "triggerCount": 0,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2025-09-03T08:33:52.491Z",
+      "createdAt": "2025-09-03T08:33:52.491Z",
+      "role": "workflow:owner",
+      "workflowId": "SiRUsvgakY9APme2",
+      "projectId": "otThis0Dzllfqt7v",
+      "project": {
+        "updatedAt": "2025-08-20T18:30:26.018Z",
+        "createdAt": "2025-08-20T18:23:04.813Z",
+        "id": "otThis0Dzllfqt7v",
+        "name": "Ada Sales <dragmastery@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "b0f4cf25-2d4a-4614-b225-fe05addaa1fc"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}
